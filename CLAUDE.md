@@ -239,10 +239,14 @@ Do not invent a hex value. Do not create a second slider.
 **Slice 00 — project foundations. In progress.**
 
 Done: Compose project, `minSdk 26` / `targetSdk 36` / `compileSdk 37`, `.dev` debug
-suffix, debug build installing on device, git initialised.
+suffix, debug build installing on device, git initialised · Hilt (`@HiltAndroidApp`
+`WordglassApp`, `MainActivity` `@AndroidEntryPoint`), Room, Navigation Compose, and
+Compose ViewModel/lifecycle artifacts added via the version catalog — no Room
+entities/DAOs yet, dependencies and Hilt wiring only.
 
-Remaining: Hilt, Room, Coroutines, Navigation · Supabase project with first migration
-(`org_id` + RLS) · Sentry and PostHog wired but silent · CI running build and lint on push.
+Remaining: explicit Coroutines dependency (currently only transitive) · Supabase project
+with first migration (`org_id` + RLS) · Sentry and PostHog wired but silent · CI running
+build and lint on push.
 
 **Done when:** a debug build installs alongside nothing, CI is green, and a manual insert
 into Supabase is blocked by RLS for the wrong `org_id`.
