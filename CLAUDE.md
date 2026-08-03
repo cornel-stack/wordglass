@@ -14,6 +14,8 @@ Reference documents live in `docs/`. Consult them for reasoning; this file is th
   screen states, and fidelity sweep — all still governing. Its phase ordering is
   superseded by `docs/build-plan.md`
 - `docs/user-flows.pdf` — 27 flows with verbatim copy strings and error paths
+- `docs/design-system.md` — the token authority: colour, type, spacing, shape, elevation,
+  motion, components. No screen hardcodes a value not defined here
 
 ---
 
@@ -109,6 +111,7 @@ learning Kotlin and Android on this project. That changes a few things:
 | `targetSdk` | 36 | Play requirement 31 Aug 2026. **Do not bump to 37.** |
 | `compileSdk` | 37 | Raised only to satisfy library requirements |
 | Debug suffix | `.dev` | Dev and release builds coexist on device |
+| `material3` | 1.4.0 stable | Pinned explicitly (not inherited from the Compose BOM). Design system requires 1.4.x stable, never 1.5.x alpha |
 
 `compileSdk` may rise when a dependency requires it. `targetSdk` moves only as a
 deliberate, separate decision — it opts the app into new runtime behaviour.
@@ -219,22 +222,23 @@ and actions.
 
 ---
 
-## Design system — NOT YET DECIDED
+## Design system — DECIDED (v1, slice 01)
 
-**Blocking gate.** No screen may hardcode a colour, size, or spacing value. Everything
-comes from a token.
+The design system is decided and lives in **`docs/design-system.md`. That document is the
+authority** for every token — colour (surface set and over-camera set), the type scale and
+its prompter tier, spacing, shape, elevation, motion, touch targets, and the shared
+components. Read it before designing or building any screen.
 
-The token structure is decided, the values are not:
+**Blocking gate, unchanged.** No screen may hardcode a colour, size, spacing value, or
+duration. Everything comes from a token.
 
-- Colour tokens, split into a **surface set** and an **over-camera set**
-- Type scale including a dedicated **prompter tier** well above body text
-- Spacing, radius, elevation scales
-- Motion: durations and easing — two values, not ten
-- One slider component serving beauty, audio mixing, and prompter speed
-- One bottom-sheet pattern, one progress pattern, one destructive-confirm pattern
+**If a screen needs a value that is not a token in `docs/design-system.md`, stop and say
+so.** Do not invent a hex value, a dp measurement, or a duration. Do not create a second
+slider. Add the token deliberately to the design system first, then use it.
 
-Until these exist: **if a screen needs a value that is not yet a token, stop and say so.**
-Do not invent a hex value. Do not create a second slider.
+A handful of values are marked ⚠ in the design system — they are decided as defaults but
+await on-device validation at the slice noted (mostly prompter sizing at slice 02). Those
+are still tokens; they may move once validated.
 
 ---
 
