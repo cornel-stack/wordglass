@@ -236,19 +236,32 @@ Do not invent a hex value. Do not create a second slider.
 
 ## Current state
 
-**Slice 00 — project foundations. In progress.**
+**Slice 00 — project foundations. Complete.**
 
-Done: Compose project, `minSdk 26` / `targetSdk 36` / `compileSdk 37`, `.dev` debug
-suffix, debug build installing on device, git initialised · Hilt (`@HiltAndroidApp`
-`WordglassApp`, `MainActivity` `@AndroidEntryPoint`), Room, Navigation Compose, and
-Compose ViewModel/lifecycle artifacts added via the version catalog — no Room
-entities/DAOs yet, dependencies and Hilt wiring only.
+All three acceptance criteria met:
 
-Remaining: explicit Coroutines dependency (currently only transitive) · Supabase project
-with first migration (`org_id` + RLS) · Sentry and PostHog wired but silent · CI running
-build and lint on push.
+- **Debug build installs with the `.dev` suffix** alongside nothing (`minSdk 26` /
+  `targetSdk 36` / `compileSdk 37`).
+- **RLS verified blocking cross-org read and write** — a member of one org can neither
+  select nor insert against another org's `org_id`
+  (`supabase/verify/rls_cross_org.sql`, run under `set role authenticated` with a forged
+  `auth.uid()`).
+- **CI green on both push to `main` and pull requests** — `.github/workflows/ci.yml`
+  runs `lint` + `assembleDebug` on JDK 21 via the Gradle wrapper.
 
-**Done when:** a debug build installs alongside nothing, CI is green, and a manual insert
-into Supabase is blocked by RLS for the wrong `org_id`.
+Shipped: Compose project with the SDK levels and `.dev` debug suffix above, git
+initialised · Hilt (`@HiltAndroidApp WordglassApp`, `MainActivity` `@AndroidEntryPoint`),
+Room, Navigation Compose, and Compose ViewModel/lifecycle artifacts via the version
+catalog — dependencies and wiring only, no Room entities/DAOs yet · first Supabase
+migration (`supabase/migrations/`): `orgs`, `org_members`, `scripts`, RLS on `org_id`,
+membership resolved through a SECURITY DEFINER `org_role()` function to avoid policy
+recursion · GitHub Actions CI.
+
+Deferred to a later slice — **not dropped**:
+
+- **Sentry and PostHog** — intentionally moved to a later slice rather than wired silent
+  now. Both remain in the chosen stack.
+- **Explicit Coroutines dependency** — still transitive only; promote to a direct
+  dependency when a slice first uses it directly.
 
 Update this section at the end of every slice.
