@@ -26,30 +26,36 @@ CONTENT INVENTORY
   Row, per script:
     - Title — auto-derived from the script's first line, or the user's edited title.
       Longest realistic: 74 characters. Must truncate with ellipsis on one line, never wrap.
-    - Read-time — [verbatim F03 format] "≈ 47 sec". At 140 wpm. Minutes form [NEW] "≈ 12 min"
-      for longer scripts. Uses numericMedium (IBM Plex Mono, tabular).
-    - Word count — [NEW] treatment required by build-plan; F03 gives no string. Proposed
-      "128 words". Uses numericMedium. Flag for review.
+    - Read-time — [verbatim F03 format] "≈ 47 sec" under a minute; [NEW · APPROVED 2026-08-04]
+      "≈ 2 min 14 sec" at sixty seconds and above (F03's own min+sec convention). At 140 wpm.
+      numericMedium (IBM Plex Mono, tabular) so the figure does not jitter.
+    - Word count — [NEW · APPROVED 2026-08-04] NOT shown in the list row. The word-count
+      treatment lives in `ScriptEditor` (a single line below the body); a 40-item list stays
+      glanceable on read-time alone. build-plan's word-count deliverable is satisfied there.
     - No last-edited timestamp is specified by the flows; do not invent one. If the row looks
       thin without it, raise it rather than adding it.
   Empty state:
     - Message [verbatim F03]: "No scripts yet. Generate one in about thirty seconds, or write
       your own."
     - Two buttons, generation first [F03: "Two buttons, generation first"]:
-        1. Primary [NEW label] "Generate one" — DESIGNED, NOT RENDERED in slice 01
-           (design/DEFERRED.md; activates slice 06). Present in this handoff so the layout is
-           correct when it lands.
-        2. Secondary [NEW label] "Write your own" — rendered, → ScriptEditor blank.
-      Button labels are NEW (the message is verbatim; F03 does not label the buttons).
+        1. Primary [NEW · APPROVED 2026-08-04] "Generate a script" — first, and wider than the
+           secondary. DESIGNED, NOT RENDERED in slice 01 (design/DEFERRED.md; activates slice
+           06). Present in this handoff so the layout is correct when it lands.
+        2. Secondary [NEW · APPROVED 2026-08-04] "Write your own" — rendered, → ScriptEditor
+           blank.
+      The empty-state message is verbatim F03; the two button labels are approved additions.
       Uses the Empty state component with its optional secondary action (design-system §11).
 
 CONTROLS
   + (create)        Icon button. Enabled always. → ScriptEditor blank. Not destructive.
   Row tap           Opens that script. Not destructive.
-  Delete affordance [NEW trigger — F03 does not specify]. Proposed: row long-press, or a
-                    trailing overflow action on the row. Destructive: yes. Confirmation
-                    required: yes → DeleteConfirm (scripts confirm; they do not use the
-                    take-style undo — that is slice 03). Flag the trigger choice for review.
+  Row overflow menu [NEW · APPROVED 2026-08-04] a trailing overflow (⋯) action on each row,
+                    holding Delete. NOT long-press: long-press is undiscoverable and collides
+                    with F04's "Rewrite this paragraph" long-press in the editor. Destructive:
+                    yes. Confirmation required: yes → DeleteConfirm — a dialog, not the
+                    take-style undo. Scripts differ from takes deliberately: a take is an
+                    unreproducible ~90-second performance (undo), a script is text that syncs
+                    (confirm).
   Empty primary     "Generate one" — deferred (see CONTENT).
   Empty secondary   "Write your own" — → ScriptEditor blank.
 
@@ -75,5 +81,5 @@ TOKENS
 OUT OF SCOPE
   Search, folders, and version history (slice 15) · sync / cloud status (slice 13) · the
   ScriptStart route chooser (designed separately; + goes straight to the editor in 01) · the
-  rendered "Generate one" button (deferred to slice 06, design/DEFERRED.md) · multi-select or
+  rendered "Generate a script" button (deferred to slice 06, design/DEFERRED.md) · multi-select or
   bulk actions.

@@ -1,14 +1,14 @@
 # Screen: DeleteConfirm    Slice: 01    Platform: Android / Compose
 
-ALL COPY ON THIS SCREEN IS NEW. F03 covers writing a script, not deleting one, and F08's
-delete flow is for takes (which use undo, not a dialog). build-plan slice 01 specifies a
-"Delete confirmation" for scripts. Every string below is [NEW] and must be reviewed, not
-absorbed.
+ALL COPY ON THIS SCREEN IS NEW AND NOW APPROVED (2026-08-04). F03 covers writing a script,
+not deleting one, and F08's delete flow is for takes (which use undo, not a dialog).
+build-plan slice 01 specifies a "Delete confirmation" for scripts. The strings below carry
+[NEW · APPROVED 2026-08-04].
 
 PURPOSE
-  Confirm deleting a script before it is gone. Scripts use a confirmation dialog; they do not
-  use the take-style 6-second undo (that is slice 03, F08). Flag this choice for review — if
-  scripts should instead use undo for consistency with takes, that is a product decision.
+  Confirm deleting a script before it is gone. Scripts use a confirmation dialog, not the
+  take-style undo — a deliberate difference [APPROVED 2026-08-04]: a take is an unreproducible
+  ~90-second performance, so it gets undo; a script is text that syncs, so it gets a confirm.
 
 ENTRY / EXIT
   Arrives from: the delete affordance on a ScriptList row
@@ -21,15 +21,15 @@ STATES TO DESIGN
   default   The destructive confirmation. See CONTENT.
 
 CONTENT INVENTORY
-  All [NEW] — propose and mark for review:
+  All [NEW · APPROVED 2026-08-04]:
     - Title: "Delete this script?"
-    - Body: "This can't be undone."
-    - Confirm button: "Delete" (destructive)
-    - Cancel button: "Cancel"
-  Longest realistic value: the dialog does not echo the script title, so there is no overflow
-  case. If review decides the title should appear in the body ("Delete 'My listing walkthrough
-  script…'?"), that reintroduces the 74-character overflow case — flag it rather than adding
-  it silently.
+    - Body: "[title]" will be removed from all your devices. This can't be undone.
+      ([title] is the script's own title, echoed into the body between the quote marks.)
+    - Primary button: "Delete" — destructive, error token.
+    - Secondary button: "Cancel"
+  Overflow case: the echoed [title] IS this screen's overflow case. Truncate the title at ~40
+  characters with an ellipsis inside the body sentence (e.g. "My listing walkthrough script for
+  the downtown…" ). The surrounding sentence is fixed; only the title truncates.
 
 CONTROLS
   Delete   Destructive: yes. This IS the confirmation, so no further confirmation. Uses the

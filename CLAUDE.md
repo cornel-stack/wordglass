@@ -69,7 +69,8 @@ slices that "only changed one thing."
    measurements, exact copy strings
 3. **Check for invented content** — any string, label, icon, or affordance present in the
    build but absent from the handoff. This is the most common defect and it is always
-   silent
+   silent. **Also check for `[NEW]` strings that reached the build without `· APPROVED`** —
+   an unapproved `[NEW]` string is invented content that merely passed through a prompt
 4. Check for missing states — any designed state with no code path to reach it. **First
    consult `design/DEFERRED.md`:** elements designed ahead of the slice that builds them are
    intentionally unreachable and are listed there with the slice that activates each. Do not
@@ -84,6 +85,12 @@ slices that "only changed one thing."
 Do not add strings, labels, icons, menu items, or affordances that are not in the handoff
 document. Placeholder copy that reads plausibly is still invented copy. If something
 appears to be missing from a handoff, **stop and ask** rather than filling the gap.
+
+**The `[NEW]` tag.** Any string in a design prompt that is not verbatim from
+`docs/user-flows.pdf` is tagged `[NEW]` and stays tagged — the tag is permanent provenance.
+It may only be built once explicitly approved, recorded inline beside it as
+`[NEW · APPROVED <date>]`. Approval is an addition to the tag, never a removal. An unapproved
+`[NEW]` string must not reach the build.
 
 ---
 

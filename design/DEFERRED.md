@@ -18,7 +18,7 @@ missing affordance. They are not defects. The sweep consults this file before fl
 
 | Screen | Element | Designed in | Activates in | Reason |
 |---|---|---|---|---|
-| `ScriptList` | Empty-state **primary** button *Generate one* (verbatim F03: *No scripts yet. Generate one in about thirty seconds, or write your own.*) | 01 | 06 | AI generation is slice 06 (F04). Both buttons are designed with verbatim copy; only the secondary *write your own* is rendered in 01 |
+| `ScriptList` | Empty-state **primary** button "Generate a script" (beneath the verbatim F03 message *No scripts yet. Generate one in about thirty seconds, or write your own.*) | 01 | 06 | AI generation is slice 06 (F04). Both buttons are designed; only the secondary "Write your own" is rendered in 01. Message is verbatim F03; button labels are [NEW · APPROVED 2026-08-04] |
 | `ScriptStart` | The whole route-chooser surface (*Write it · Generate it · Paste or import*) | 01 | 06 | Only *Write it* has a live destination in 01, so `+` opens a blank `ScriptEditor` directly. The chooser activates when *Generate it* / *Paste or import* exist (slice 06 / 15). Designed now because it is the shared entry for F01 onboarding and F04/F05 |
 | `ScriptEditor` | Primary **Record** button | 01 | 02 | Record leads to `Capture`, which is slice 02 (F06). Designed as the editor's primary action; not rendered in 01. In 01 the editor's exit is autosave + system back |
 
@@ -26,9 +26,9 @@ missing affordance. They are not defects. The sweep consults this file before fl
 
 ## How the two empty-state buttons resolve across slices
 
-- **Slice 01 build:** render only *write your own* (the secondary). The `ScriptList` empty
-  state uses the F03 verbatim string in full; the *Generate one* primary is designed and
+- **Slice 01 build:** render only "Write your own" (the secondary). The `ScriptList` empty
+  state uses the F03 verbatim message in full; the "Generate a script" primary is designed and
   present in the handoff but commented out of the build.
-- **Slice 06 build:** wire *Generate one* to `ScriptStart` / `GenerateInput`; the empty state
-  becomes the two-button, generation-first layout exactly as F03 specifies, and this row is
-  deleted from DEFERRED.md.
+- **Slice 06 build:** wire "Generate a script" to `ScriptStart` / `GenerateInput`; the empty
+  state becomes the two-button, generation-first layout exactly as F03 specifies, and this row
+  is deleted from DEFERRED.md.

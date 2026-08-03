@@ -40,13 +40,21 @@ No screen sits over the camera. The over-camera token set (§5) is untouched unt
 
 Everything else reuses existing §11 components. No other new components.
 
-## Strings that are NOT verbatim from the flows — written new, flagged for review
+## Strings that are NOT verbatim from the flows
 
-- `ScriptList` screen title, word-count treatment, the minutes read-time format (`≈ N min`),
-  and the empty-state **button labels** (the empty-state *message* is verbatim F03; the two
-  button labels are not specified)
-- Every string in `DeleteConfirm` — F03 covers no script deletion
-- The `ScriptEditor` autosave indicator, if any (F03 specifies no save button but no indicator
-  either)
+Tagged `[NEW]` in their prompts. Five resolved and now `[NEW · APPROVED 2026-08-04]`; one
+still pending. The tag is permanent provenance — approval is appended, never removed (see the
+`[NEW]` rule in `CLAUDE.md`).
 
-Each is marked `[NEW]` in its prompt.
+**Approved 2026-08-04:**
+- `ScriptList` empty-state button labels — "Generate a script" (primary, first, wider) /
+  "Write your own" (secondary). The empty-state *message* stays verbatim F03.
+- Read-time min+sec format — "≈ 47 sec" under a minute, "≈ 2 min 14 sec" at/above sixty.
+- Word count — `ScriptEditor` only, one line below the body: "1,247 words · ≈ 8 min 54 sec".
+  Not shown in `ScriptList` rows.
+- Autosave indicator — none, deliberately.
+- `DeleteConfirm` — all copy, plus row-overflow delete trigger and confirm-not-undo.
+
+**Still pending `[NEW]` (not among the resolved five):**
+- `ScriptList` screen title "Scripts". Remains `[NEW]` unapproved; must not reach the build
+  until approved, per the `CLAUDE.md` rule.
