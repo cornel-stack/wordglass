@@ -317,6 +317,19 @@ colour, opacity, and haptics — never by layout.
 rate, and it must not be eased, interpolated, or frame-dropped. Treat it as a separate
 concern from the motion system entirely.
 
+### Reduced motion
+
+Reduced-motion behaviour is **systemic, not per-screen.** When the system reduced-motion
+setting is on, positional animation is dropped **everywhere** — elements appear at their final
+position with opacity transitions only, at the same durations (`motion.fast` / `motion.standard`
+unchanged). No screen opts in, opts out, or defines its own reduced-motion variant; it is
+handled once, globally.
+
+**One exception, and it is absolute: prompter scroll is unaffected by reduced motion.** As
+above, it is not animation — it is continuous translation at a user-controlled rate — and it
+must never be disabled, paused, or degraded by an accessibility setting. Reduced motion turns
+off decorative movement; it must not turn off the thing the user is reading from.
+
 ---
 
 ## 10. Touch targets
