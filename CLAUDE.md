@@ -70,7 +70,10 @@ slices that "only changed one thing."
 3. **Check for invented content** — any string, label, icon, or affordance present in the
    build but absent from the handoff. This is the most common defect and it is always
    silent
-4. Check for missing states — any designed state with no code path to reach it
+4. Check for missing states — any designed state with no code path to reach it. **First
+   consult `design/DEFERRED.md`:** elements designed ahead of the slice that builds them are
+   intentionally unreachable and are listed there with the slice that activates each. Do not
+   flag those as defects; flag only unreachable states that DEFERRED.md does not account for
 5. Check reuse — if the build created a new component where an existing one was
    specified, revert it
 6. Over-camera contrast pass, capture-UI slices only — against a white wall and a dark room

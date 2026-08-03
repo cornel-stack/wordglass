@@ -343,18 +343,29 @@ screen.
 | Button (filled, outlined, text) | enabled, pressed, disabled, loading |
 | Icon button | enabled, pressed, disabled, selected |
 | **Slider** | default, dragging, disabled, with value label |
+| **TextField** | default, focused, filled, error, disabled |
 | Bottom sheet | collapsed, expanded, dragging |
 | List row | default, pressed, selected, with trailing action, overflowing text |
 | Chip | default, selected, disabled |
 | Dialog | standard, destructive |
 | Toast / snackbar | default, with action, with undo |
 | Progress | indeterminate, determinate with percentage and remaining |
-| Empty state | icon, message, primary action |
+| Empty state | icon, message, primary action, optional secondary action |
 
 **One slider serves beauty sliders, audio mixing, prompter speed, prompter size, and scrim
 opacity.** If a later slice wants a second slider, that is a fidelity sweep failure — revert it.
 
 Same rule for the bottom sheet, the progress pattern, and the destructive-confirm pattern.
+
+**`TextField` is for discrete fields** — a script title, a search box, an org name. Fill
+`surfaceContainerLowest`, 1dp `outline` stroke, `shape.sm`, label in `onSurfaceVariant`;
+focused swaps the stroke to `primary`, error to `error` with helper text. **The full-bleed
+writing surface in `ScriptEditor` is deliberately not a `TextField`** — no border, no label,
+body text directly on `surface`. That distinction is documented in the `ScriptEditor` design
+prompt; do not reach for `TextField` there.
+
+**The `Empty state` secondary action is optional and lower-emphasis** — a text or outlined
+button beneath the filled primary, never two filled buttons competing.
 
 ---
 
