@@ -1,0 +1,60 @@
+name: CI
+
+# Debug-only build gate. Runs on every push to main and on every pull request.
+# No signing config, no secrets: this compiles the debug variant only.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# One in-flight run per ref. A new push to a branch cancels the previous run
+# instead of leaving both to fight for runners.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege: the job only reads the repo. It writes no comments, no
+# releases, nothing back to GitHub.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # JDK 21, not 17: gradle/gradle-daemon-jvm.properties pins the Gradle
+      # daemon to toolchainVersion=21 (Gradle 9 Daemon JVM criteria). Providing
+      # 21 here means the daemon runs on it directly; providing 17 would make
+      # Gradle download a 21 JDK on every run to satisfy that pin.
+      # cache: gradle stores ~/.gradle across runs, keyed on the build files.
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      # Android lint. Runs first so a lint failure fails the job before we spend
+      # time assembling. Uses the committed wrapper (Gradle 9.5), never a system
+      # Gradle.
+      - name: Lint
+        run: ./gradlew lint
+
+      # The lint report is uploaded whether the job passed or failed, which is
+      # the point: when lint fails above, this step still runs so you can open
+      # the HTML report from the run's Artifacts section. Without always(), a
+      # failed lint would skip the upload and hide the very report you need.
+      - name: Upload lint report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-*.*
+
+      # Debug build only. No release variant, no signing, no instrumented tests
+      # (there is no emulator in CI and the project specs rule one out).
+      - name: Assemble debug
+        run: ./gradlew assembleDebug
