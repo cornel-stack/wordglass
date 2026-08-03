@@ -8,3 +8,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Claude Code: track project skills (.claude/skills/ is versioned infrastructure),
+# but never machine-local settings. This makes the exclusion part of the repo
+# rather than relying on a contributor's global ignore.
+.claude/settings.local.json
