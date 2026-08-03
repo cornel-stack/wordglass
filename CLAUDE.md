@@ -8,7 +8,11 @@ Reference documents live in `docs/`. Consult them for reasoning; this file is th
 
 - `docs/technical-specification.pdf` — stack decisions, exclusions, billing, iOS port map
 - `docs/feature-specification.pdf` — feature scope, free tier, moat mechanisms
-- `docs/build-plan.pdf` — slice sequence, design-to-code loop, fidelity sweep
+- `docs/build-plan.md` — **current** slice sequence and schedule. Supersedes the phase
+  ordering in `docs/build-plan.pdf`
+- `docs/build-plan.pdf` — the design-to-code loop, design prompt template, universal
+  screen states, and fidelity sweep — all still governing. Its phase ordering is
+  superseded by `docs/build-plan.md`
 - `docs/user-flows.pdf` — 27 flows with verbatim copy strings and error paths
 
 ---
