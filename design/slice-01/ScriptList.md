@@ -1,9 +1,11 @@
 # Screen: ScriptList    Slice: 01    Platform: Android / Compose
 
-**Reconciled to `specs/slice-01/slice-01-rulings.md` (2026-08-04).** Where this prompt and the
-rulings differ, the rulings win. The overflow menu (B1), the blank-editor / "Untitled" rule
-(B2), and accessibility (B4) come from that document; the full state-transition table (B3)
-lives in the handoff.
+**Superseded by `specs/slice-01/slice-01-handoff.md` for build.** This prompt fed the design;
+the handoff is the build source of truth and wins on any conflict (it supersedes the handout
+and the rulings). Reconciled to the handoff 2026-08-04 — notably the row metadata is `[relative
+date] · [read time]` with **no word count** (handoff §4.4 overruled rulings B2). The B1 overflow
+menu, the B2 blank-editor / "Untitled" rule, and B4 accessibility trace to the rulings; the B3
+state-transition table lives in handoff §8.
 
 PURPOSE
   Find, open, create, and delete the user's scripts. The home surface for a signed-out solo
@@ -30,36 +32,41 @@ STATES TO DESIGN
   overflowing   A 74-character title; a long script's minutes read-time ("≈ 28 min 40 sec" at
                 content.body.max, #9); the 40-item list scrolled under the FAB.
   untitled row  A script with an empty body has no first line to derive a title from: its row
-                renders "Untitled" in the title position, styled identically, metadata "0 words
-                · ≈ 0 sec" (B2). Reached only by deliberate user action, never by app behaviour.
+                renders "Untitled" in the title position, styled identically, metadata
+                "Yesterday · ≈ 0 sec" — date · read-time, no word count (handoff §4.4). Reached
+                only by deliberate user action, never by app behaviour.
   overflow menu ⋯ open on a row — an anchored dropdown, one item, Delete (B1). See CONTROLS and
                 the OVERFLOW MENU block.
 
 CONTENT INVENTORY
-  Screen title: "Scripts" [NEW · APPROVED 2026-08-04] (#7 — the domain noun; survives the team
-    feature, unlike "My/Your Scripts" or "Library"). It is also the exit label ScriptEditor's
-    back affordance uses (#8).
+  Screen title: "Scripts" [NEW · APPROVED 2026-08-04], role `headlineLarge` on `onSurface`
+    (0.1 — the existing "Screen titles" role). The domain noun; survives the team feature,
+    unlike "My/Your Scripts" or "Library". Also the exit label ScriptEditor's back affordance
+    uses (#8).
   Row, per script (title + metadata read as ONE node for a11y — B4):
     - Title — from the first line, or the user's edited title, or "Untitled" for an empty body
       (B2). Up to two lines, then a LINE clamp with ellipsis (not a height clamp — at 200% the
-      row grows and stays two lines). Longest: 74 characters.
-    - Metadata line — word count and read-time, per B2's format: "1,247 words · ≈ 8 min 54
-      sec"; empty-body → "0 words · ≈ 0 sec". Comma thousands separator. Read-time [verbatim
-      F03] "≈ 47 sec" under a minute, "≈ 2 min 14 sec" above, up to "≈ 28 min 40 sec" at
-      content.body.max. Numerals in numericMedium (Plex Mono, tabular); they never truncate and
-      wrap rather than clip at 200%.
-      NOTE — this reverses the earlier "no word count in rows" resolution: B2 puts word count
-      back into the row metadata line.
-    - Relative date — B4's row content description names a "[relative date]", so a date is part
-      of the row. FLAG: B2's visible metadata example shows no date; B4's content description
-      does. Reconcile at draw time whether the date renders visibly in the metadata line or is
-      screen-reader-only — do not invent a placement beyond these two.
-  Empty state (slice 01 — B6):
-    - Message: "No scripts yet. Write your first one." [NEW · APPROVED 2026-08-04]
-    - ONE button: "Write your own" [NEW · APPROVED 2026-08-04] → ScriptEditor blank.
-    - Uses the Empty state component (§11) with NO secondary action in slice 01. The slice-06
-      two-button generation-first state and its verbatim F03 string are the copy pair in
-      design/DEFERRED.md.
+      row grows and stays two lines). Longest: 74 characters. bodyLarge on onSurface.
+    - Metadata line — `[relative date] · [read time]`, e.g. "2h ago · ≈ 47 sec" (handoff §4.4).
+      labelSmall on onSurfaceVariant, one line. NO word count in the row — word count lives only
+      on the editor's count line (handoff §4.4 overruled rulings B2). Read-time per the
+      design-system format: "≈ 47 sec" under a minute, "≈ 2 min 14 sec" above, at 140 wpm.
+      Numerals in mono tabular (numericMedium) so figures do not jitter between rows; they never
+      truncate and wrap rather than clip at 200%.
+    - Relative date rendering (handoff §4.4): "2h ago" · "Yesterday" · "Mon" · "Fri" · "28 Jul"
+      · "21 Jul".
+  Empty state (slice 01 — B6). A vertically-centred block: glyph, space.6, body copy, space.6,
+    one button (handoff §4.2):
+    - Glyph: Material Symbols Outlined `description` at `icon.size.large` (48), `onSurfaceVariant`
+      (0.2). DECORATIVE — not-important-for-accessibility; the body copy states the same thing.
+    - Body copy: "No scripts yet. Write your first one." [NEW · APPROVED 2026-08-04], `bodyLarge`
+      on `onSurfaceVariant`, centred (0.3).
+    - ONE button: "Write your own" [NEW · APPROVED 2026-08-04], an `OutlinedButton` (outline
+      border, onSurface label — 0.4) → ScriptEditor blank. The FAB is present but skipped in the
+      focus order here.
+    - Slice 06 ADDS a filled `Button` "Generate a script" above it (same geometry), restoring the
+      two-button generation-first state and its verbatim F03 string — the copy pair in
+      design/DEFERRED.md. Two buttons in slice 01 is the defect.
 
 CONTROLS
   FAB (+)           Floating action button, fab.standard (56dp), Material Symbols "+". →
@@ -114,17 +121,17 @@ ACCESSIBILITY (B4)
     surface; the ⋯ mark ≥3:1; the FAB "+" on primary.
 
 REUSE
-  Existing components (§11): List row (rows) · Empty state, no secondary action in slice 01
-    (empty) · Dialog (via DeleteConfirm). The overflow menu is an M3 DropdownMenu built to the
-    B1 spec.
-  FAB: M3 FloatingActionButton (per §2, build on M3) at fab.standard with a Material Symbols
-    glyph — an M3 primitive, not a bespoke component; §11 does not enumerate a FAB and none is
-    invented.
-  New components this justifies: none.
+  Existing components (handoff §2): `ScriptRow` (rows) · `OutlinedButton` (empty-state button;
+    slice 06 adds a filled `Button`) · `AlertDialog` (via DeleteConfirm). The overflow menu is
+    an M3 `DropdownMenu` built to the B1 spec.
+  FAB: M3 `FloatingActionButton` at fab.standard with a Material Symbols glyph — an M3 primitive.
+  New components this justifies: none. The empty state is composed from glyph + body + button
+    per handoff §4.2, not a distinct "Empty state" component.
 
 TOKENS
-  None missing. row.script / fab.standard (§10), outline / surfaceContainerHigh / shape.sm for
-  the menu (§4/§7), motion.fast (§9), numericMedium (§3).
+  None missing. Type: `headlineLarge` (title), `bodyLarge` (title/empty body), `labelSmall` +
+  `numericMedium` (metadata line). `icon.size.large` (empty glyph). row.script / fab.standard
+  (§10), outline / surfaceContainerHigh / shape.sm for the menu (§4/§7), motion.fast (§9).
 
 OUT OF SCOPE
   Search, folders, version history (slice 15) · sync / cloud status (slice 13) · the ScriptStart
