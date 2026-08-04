@@ -443,6 +443,11 @@ prompt; do not reach for `TextField` there.
 **The `Empty state` secondary action is optional and lower-emphasis** — a text or outlined
 button beneath the filled primary, never two filled buttons competing.
 
+**Button colours.** The filled `Button` uses a `primary` container with an `onPrimary` label
+(onPrimary on primary — 7.08:1). The `OutlinedButton` uses an `outline` border with an
+`onSurface` label (onSurface on surface — 16.24:1). Both clear the 4.5:1 text floor. Per-screen
+button geometry — height, width caps, stacking — lives in that screen's handoff, not here.
+
 ---
 
 ## 12. Designing against this
@@ -476,12 +481,18 @@ own component set and the app stops looking like one product somewhere around sl
 | Token | Value |
 |---|---|
 | `icon.size` | 24 |
+| `icon.size.large` | 48 |
 | `icon.weight` | 400 |
 | `icon.grade` | 0 |
 
 Set = Material Symbols Outlined. It ships with the platform, matches the system iconography
 this design system already defers to (the system prefers outlines to fills), and closes a
 class of future decisions in one line.
+
+**`icon.size.large` (48)** is for large decorative glyphs — the first is the empty-state
+`description` glyph on `ScriptList`, in `onSurfaceVariant`. Such a glyph is **decorative and
+not-important-for-accessibility**: the body copy directly beneath it states the same thing, so
+announcing the glyph would be redundant, not added information.
 
 **The record dot is not an icon.** It is custom geometry, not from the set — slice 02's real
 record button owns that mark, and it must not be reachable through an icon name.
