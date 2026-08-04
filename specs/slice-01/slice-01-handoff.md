@@ -721,3 +721,52 @@ state list: **"untitled row"** (a variant of *populated*, still built) and **"De
 200% stacked"** (an accessibility behaviour, still handled) — neither is a designed state. The
 **truncated DeleteConfirm** frame gets its own code path and gallery entry: ~40 chars, ellipsis
 **inside** the closing quote, both quote marks always render, the sentence untouched (§7.3).
+
+---
+
+## Addendum — 2026-08-05 (Phase A verification)
+
+Phase A editor core verified on the physical Galaxy A14 (SM-A145F, **Android 15 / API 35**,
+three-button nav). All five Phase A exit criteria pass. Three things learned are spec, not notes;
+where they refine an earlier section, **the addendum wins.**
+
+1. **Keyboard settle on restore.** On process-death restore (§6.4 *interrupted* / transition #15)
+   the soft keyboard takes ~1–2 s to re-animate and the IME reports a **stale selection (`0–0`)**
+   until its input connection re-establishes. No data is lost — body, read time, cursor/selection
+   (verified exact — a 0–591 range restored to 0–591) and scroll offset all restore. This settle is
+   **cosmetic and accepted**; re-check it at the §11 sweep. Do **not** add a recovered-state
+   indicator to mask it — that would violate §6.4's "no recovered banner".
+
+2. **The `lastPersistedBody` guard is load-bearing — spec, not incidental.** §10.5 and ruling 4
+   specify one 2 s debounce with four consumers and a `.drop(1)` on the seed emission. The
+   implementation added a **second mechanism**: on open/restore of an existing record the opening
+   body is stamped as already-persisted, and every write is skipped when the body equals the last
+   persisted value. This guard — **not `.drop(1)` alone** — is what makes exit criterion 4 hold
+   (reopening a record without typing must **not** move `updatedAt`). It is now part of the
+   contract: **an unchanged editor session performs zero writes.** `.drop(1)` skips the seed
+   *emission*; the guard skips any *redundant write*, including one that would otherwise slip past
+   the debounce. Both are required, and both must be preserved by any future refactor of §10.5.
+
+3. **"Untitled" is a presentation-layer substitution — never written.** An emptied body persists
+   `title = ""` (with `body = ""`); the string **"Untitled"** is substituted **at render**, not at
+   write. Confirmed at the DB layer: the emptied record stores an **empty** title, not the literal
+   "Untitled". This matters for slice-13 sync — nothing may write a fake or derived title into a
+   record, or the placeholder would sync to other devices as if it were the user's own words. §4.4
+   and §9 already list "Untitled" as a row string; this fixes its provenance as **view-layer only.**
+
+### Carry into Phase C
+
+The "Untitled" substitution (3, above) must be a **single shared function** called by both
+`ScriptRow` and the editor's title display — the same discipline ruling 2 applies to word count and
+read time. Two implementations will disagree eventually (empty vs whitespace-only, trimming rules).
+One function, both call sites.
+
+### Device / gap note
+
+Predictive back could **not** be verified on this device: API 35 + three-button nav cannot
+reproduce the `targetSdk 36` default-on `OnBackInvokedCallback` behaviour §10.3 requires. It needs
+an **API 36 surface** (device or Test Lab), arranged before Phase E. The two available smoke tests
+(gesture-nav, manifest opt-in) each verify something adjacent to what ships and are deliberately
+**not** run — a false green is worse than an open gap. Edge-to-edge insets (§10.2), by contrast,
+**are** verifiable here: enforcement landed at API 35, so this device exercises them at shipping
+fidelity.
