@@ -55,8 +55,8 @@ CONTENT INVENTORY
       truncate and wrap rather than clip at 200%.
     - Relative date rendering (handoff §4.4): "2h ago" · "Yesterday" · "Mon" · "Fri" · "28 Jul"
       · "21 Jul".
-  Empty state (slice 01 — B6). A vertically-centred block: glyph, space.6, body copy, space.6,
-    one button (handoff §4.2):
+  Empty state (slice 01 — B6). The `Empty state` component (§11 / handoff §2) — a
+    vertically-centred block: glyph, space.6, body copy, space.6, one button (handoff §4.2):
     - Glyph: Material Symbols Outlined `description` at `icon.size.large` (48), `onSurfaceVariant`
       (0.2). DECORATIVE — not-important-for-accessibility; the body copy states the same thing.
     - Body copy: "No scripts yet. Write your first one." [NEW · APPROVED 2026-08-04], `bodyLarge`
@@ -121,12 +121,12 @@ ACCESSIBILITY (B4)
     surface; the ⋯ mark ≥3:1; the FAB "+" on primary.
 
 REUSE
-  Existing components (handoff §2): `ScriptRow` (rows) · `OutlinedButton` (empty-state button;
-    slice 06 adds a filled `Button`) · `AlertDialog` (via DeleteConfirm). The overflow menu is
-    an M3 `DropdownMenu` built to the B1 spec.
+  Existing components (handoff §2): `ScriptRow` (rows) · `Empty state` (the empty screen —
+    composes the glyph + body + `OutlinedButton`; slice 06 adds a filled `Button`) ·
+    `AlertDialog` (via DeleteConfirm). The overflow menu is an M3 `DropdownMenu` built to the B1
+    spec.
   FAB: M3 `FloatingActionButton` at fab.standard with a Material Symbols glyph — an M3 primitive.
-  New components this justifies: none. The empty state is composed from glyph + body + button
-    per handoff §4.2, not a distinct "Empty state" component.
+  New components this justifies: none.
 
 TOKENS
   None missing. Type: `headlineLarge` (title), `bodyLarge` (title/empty body), `labelSmall` +

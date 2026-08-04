@@ -73,6 +73,7 @@ No code path reaches it in slice 01.
 | `AlertDialog` | reuse | DeleteConfirm |
 | `Button` | reuse | Empty-state filled action — *Generate a script* (slice 06). `primary` container, `onPrimary` label (7.08:1). 48 dp height, `shape.sm`, `space.4` horizontal padding, max width 288 dp, centred |
 | `OutlinedButton` | reuse | Empty-state outlined action — *Write your own*. `outline` border, `onSurface` label (16.24:1). Same geometry as `Button`; the two stack with `space.3` between, so slice 06 **adds** a button rather than resizing one. Also DeleteConfirm's Cancel/Delete (§7.4) |
+| `EmptyState` | reuse | design-system §11. Composes the empty screen — glyph (`description` @ `icon.size.large`, `onSurfaceVariant`, decorative) + body copy (`bodyLarge` on `onSurfaceVariant`, centred) + action(s). One action (`OutlinedButton`) in slice 01; the optional second (`Button`, filled) lands in slice 06. See §4.2 |
 
 **Four new components in slice 01.** Each is justified above. Any fifth new component
 appearing in the build is a sweep defect — revert it and use the specified one.
@@ -148,8 +149,8 @@ and must not appear here.
 
 ### §4.2 State — empty · slice 01
 
-Vertically centred block: glyph *(0.2)*, `space.6`, body copy *(0.3)* on
-`onSurfaceVariant`, `space.6`, one button.
+The `EmptyState` component (§2): a vertically centred block — glyph *(0.2)*, `space.6`, body
+copy *(0.3)* on `onSurfaceVariant`, `space.6`, one button.
 
 Copy: **"No scripts yet. Write your first one."**
 Button: **"Write your own"**, outlined *(0.4)*
