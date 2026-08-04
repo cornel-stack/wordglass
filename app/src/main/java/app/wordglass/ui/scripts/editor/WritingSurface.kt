@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.unit.dp
+import app.wordglass.ui.theme.WgSpacing
 
 /**
  * The bespoke body editing surface (§6.1). A `BasicTextField` — the unstyled editable-text
@@ -21,7 +21,8 @@ import androidx.compose.ui.unit.dp
  * The [scrollState] is an explicit `rememberScrollState()` so the scroll offset lands in the
  * saved-state graph and restores across process death (§6.4). A self-scrolling field would not.
  *
- * Phase A: minimal styling. Phase B applies the real tokens (bodyLarge on `surface`, 1.5× leading).
+ * `bodyLarge` (IBM Plex Sans) on `surface`, `space.4` horizontal margin, 1.5× leading — the
+ * leading rides in the `bodyLarge` token (24sp / 16sp), not a local override.
  */
 @Composable
 fun WritingSurface(
@@ -35,7 +36,7 @@ fun WritingSurface(
         modifier = modifier
             .fillMaxWidth()
             .focusRequester(focusRequester)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = WgSpacing.s4),
         textStyle = MaterialTheme.typography.bodyLarge.copy(
             color = MaterialTheme.colorScheme.onSurface,
         ),
