@@ -217,6 +217,28 @@ sounds like an LLM, the constraint prompt is wrong and no amount of UI fixes it.
 **Done when:** a generated 30-second script reads aloud naturally at the estimated duration
 and contains none of the banned filler.
 
+### Deferred feature candidate — "Speak it"
+
+**Status: DEFERRED.** A fourth route on `ScriptStart`. The user records audio; it runs through
+ASR and the existing spoken-form conversion prompt — the same path as URL import — and lands in
+`ScriptEditor` as an editable script.
+
+- **Design now, build only if promoted.** At slice 06, design the `ScriptStart` sheet with
+  **four rows** so the layout is settled whether or not the route is built. Build the "Speak
+  it" route only on promotion.
+- **Decide at:** the phase 3 checkpoint, when five real creators see the product and ASR is
+  already working.
+- **Rationale for deferral:** it strengthens none of the three moat mechanisms, so it fails
+  the standing-principle test as a build-now item. But it is a second solution to the
+  blank-page problem that §2.1 says generation exists to solve, and it suits the audience — a
+  realtor speaks about a property fluently and writes about it badly.
+- **Unresolved before promotion — metering.** ASR is the primary cost constraint. Does a
+  two-minute ramble consume the same allowance as captioning a finished video, or does this
+  need a third metered resource? Business decision, not technical.
+- **Naming collision it avoids:** *Record* in `ScriptEditor` means "record video of yourself
+  reading this script." Voice-to-script belongs on `ScriptStart`, upstream, so the two never
+  share a screen.
+
 ## Slice 07 — Trim and timeline
 **1 wk**
 
