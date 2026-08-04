@@ -13,3 +13,8 @@ local.properties
 # but never machine-local settings. This makes the exclusion part of the repo
 # rather than relying on a contributor's global ignore.
 .claude/settings.local.json
+
+# Slice-01 design-source PDFs — the markdown handoff is the tracked source of
+# truth; these binary exports are not versioned. (docs/*.pdf reference specs stay tracked.)
+specs/slice-01/Slice 01 Handoff.pdf
+specs/slice-01/slice-1-screens.pdf
