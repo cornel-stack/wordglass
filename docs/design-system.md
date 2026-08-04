@@ -127,12 +127,18 @@ the same sp value subtends less. Mirror mode may need its own default. Determine
 | `titleLarge` | 20sp | 1.3 | Medium | List row primary, dialog titles |
 | `titleMedium` | 17sp | 1.35 | Medium | Card titles |
 | `bodyLarge` | 16sp | 1.5 | Regular | Script editor body, primary reading |
-| `bodyMedium` | 14sp | 1.45 | Regular | Secondary text, descriptions |
-| `labelLarge` | 14sp | 1.2 | Medium | Buttons |
-| `labelMedium` | 12sp | 1.2 | Medium | Chips, captions, metadata |
-| `labelSmall` | 11sp | 1.2 | Medium | Overlines, timestamps |
+| `bodyMedium` | 14sp | 1.5 | Regular | Secondary text, descriptions |
+| `labelLarge` | 14sp | 1.33 | Medium | Buttons |
+| `labelMedium` | 12sp | 1.33 | Medium | Chips, captions, metadata |
+| `labelSmall` | 11sp | 1.33 | Medium | Overlines, timestamps |
 | `numericMedium` | 14sp | 1.2 | Medium | **Plex Mono, tabular.** Durations, counters |
 | `numericLarge` | 20sp | 1.2 | Medium | **Plex Mono, tabular.** Elapsed recording time |
+
+**Line height by role.** Leading is set per role group, not one global token: **body roles
+1.5×**, **label roles 1.33×**, and the **prompter tier stays 1.5×**. Numeric roles keep tight
+1.2 leading — they are single-line counters. Body and prompter matching at 1.5× is
+deliberate: this is a writing tool whose text gets read aloud, and prose that looks the same
+while drafting as it does on the prompter is easier to judge.
 
 Script editor body is `bodyLarge` at 16sp. It is a writing surface, not a reading surface —
 the prompter tier is where reading happens.
@@ -161,11 +167,27 @@ Screens that are not over camera.
 | `onSurface` | `#E8EAED` | Primary text |
 | `onSurfaceVariant` | `#9BA1A8` | Secondary text, inactive icons |
 | `onSurfaceDisabled` | `#5A6068` | Disabled |
-| `outline` | `#3A3F45` | Borders, dividers where visible |
-| `outlineVariant` | `#22262A` | Hairlines, subtle separation |
+| `outline` | `#767C85` | Load-bearing boundaries — any edge that identifies an interactive component or its state |
+| `outlineVariant` | `#3A3F45` | Decorative only — dividers, a sheet's top edge, non-informational rules |
 
 Not pure white on pure black. `#E8EAED` on `#0B0C0E` is ~15:1 — well past AA — without the
 halation pure white produces on OLED at large sizes.
+
+**`outline` clears WCAG 1.4.11 (3:1) on every surface it can sit on:** 4.65:1 on `surface`,
+3.89:1 on `surfaceContainerHigh` (the B1 overflow-menu edge), 3.52:1 on
+`surfaceContainerHighest`. **`surfaceContainerHighest` is the binding surface** — the lightest,
+so the lowest ratio, only 0.52 of headroom over 3:1. If it is ever lightened, `outline` fails
+there first and this ruling reopens.
+
+**Sole-identifier rule.** Any boundary that *alone* identifies an interactive component or its
+state uses `outline`, never `outlineVariant`. A control identified by a visible text label may
+use `outlineVariant` for a purely decorative edge — but prefer `outline` regardless, because a
+sub-2:1 edge is invisible whether or not a standard requires it to be.
+
+`outlineVariant` inherits the previous `outline` value (`#3A3F45`, 1.84:1 on `surface`):
+visible, clearly subordinate to `outline`, no new colour, and it keeps the ramp's existing
+spacing. It is decorative and has no conformance floor — but it must never be the sole
+identifier of a control.
 
 ### Accent
 
@@ -199,6 +221,29 @@ Convention is load-bearing here. Do not be clever with the record colour.
 | `errorContainer` | `#4A130E` | Error banners |
 | `warning` | `#FFB84D` | Approaching quota, storage pressure |
 | `success` | `#5FD98C` | Completion, sync healthy |
+
+### Scrim
+
+For modal surfaces on the surface set — `ScriptStart`, `DeleteConfirm`, and any future dialog
+or bottom sheet.
+
+| Token | Value | Use |
+|---|---|---|
+| `scrim` | `#000000` | The scrim colour |
+| `scrim.modal` | 0.60 opacity | Over the full window, including both system bar regions |
+
+One token, both surfaces. **0.60, not Material's 0.32:** over a near-black `surface`, a 32%
+black scrim is close to invisible and fails the scrim's only job — saying *the layer behind
+this is inert*. At 0.60 the content behind still reads as context and unmistakably as
+unavailable.
+
+**It must not borrow the `oc.*` set.** Those are calibrated against a live camera preview and
+always pair with an outline — a different problem, a different value.
+
+**Build note.** Compose's `Dialog` dims through the platform window, so hitting exactly 0.60
+across the system bars needs the dialog drawn as a full-window overlay (or
+`DialogProperties(decorFitsSystemWindows = false)`); `ModalBottomSheet` takes `scrimColor`
+directly. Both must land on the same value — a visible difference on device is a sweep defect.
 
 ---
 
@@ -294,6 +339,9 @@ above content that remains visible.
 
 Tonal separation carries hierarchy. Shadow only when something is modal.
 
+Card borders use `outlineVariant`, which changed value on 2026-08-04 (see §4, `outline`).
+Borders are more visible than in designs drawn before that date. Intended.
+
 ---
 
 ## 9. Motion
@@ -343,6 +391,21 @@ off decorative movement; it must not turn off the thing the user is reading from
 The capture minimum is deliberately well above the platform 48dp. The user is not looking at
 the screen. Generous targets and fixed positions are what make a control findable by feel,
 and haptic confirmation replaces the visual confirmation the user will not see.
+
+### Component dimensions
+
+Fixed component sizes, not spacing steps — do **not** add these to the §6 scale. Each is also
+a touch target, not merely a visual height.
+
+| Token | Value | Use |
+|---|---|---|
+| `row.script` | 88dp | `ScriptList` row — two title lines plus a metadata line |
+| `row.action` | 72dp | `ScriptStart` route row — a choice, not a data row |
+| `fab.standard` | 56dp | Standard FAB diameter (M3) |
+
+`56` is a FAB diameter, a component dimension; it is deliberately not a spacing step. The row
+heights are M3's standard 72/88dp list-item heights, named by role so a future row with
+different content cannot misread the token.
 
 ---
 
@@ -406,7 +469,67 @@ own component set and the app stops looking like one product somewhere around sl
 
 ---
 
-## 13. Open items
+## 13. Iconography
+
+**Material Symbols, Outlined.**
+
+| Token | Value |
+|---|---|
+| `icon.size` | 24 |
+| `icon.weight` | 400 |
+| `icon.grade` | 0 |
+
+Set = Material Symbols Outlined. It ships with the platform, matches the system iconography
+this design system already defers to (the system prefers outlines to fills), and closes a
+class of future decisions in one line.
+
+**The record dot is not an icon.** It is custom geometry, not from the set — slice 02's real
+record button owns that mark, and it must not be reachable through an icon name.
+
+**Icon-only rule.** No icon-only control in a primary action position. A row-level affordance
+may be icon-only only if all three hold: the glyph is platform-conventional, its content
+description names its object (not just its function), and the mark meets 3:1. The `···` on
+`ScriptList` qualifies; a bare icon as a screen's main action does not.
+
+---
+
+## 14. Interaction states
+
+### STATE · RESERVED
+
+A control rendered in its permanent position before the release that activates it. Distinct
+from disabled, which is momentary and pending a user action.
+
+| Property | Value |
+|---|---|
+| Container | `surfaceContainerLow`, no fill, **no outline** |
+| Label | `onSurfaceVariant` — 7.20:1 on `surfaceContainerLow`, clears 4.5:1 |
+| Iconography | `onSurfaceVariant`, never the semantic colour of the live control |
+| Semantics | `enabled = false`; announced, never skipped |
+| Copy | the description states when it arrives |
+
+The absence of an outline is what says *not a button yet* — legibility no longer carries that
+meaning, so the label can be legible. `onSurfaceDisabled` is for momentary disabled states
+only. This recurs: the build plan defers a lot into visible positions.
+
+**Momentary disabled states.** A disabled control relying on the 2.95:1 `onSurfaceDisabled`
+exemption (WCAG exempts inactive components from contrast) must still be identifiable as
+disabled by something other than colour — the exemption assumes the disabledness is
+discoverable, not merely dim. `STATE · RESERVED` satisfies this through its missing outline;
+this note is for whatever gets disabled in slice 04 onward.
+
+---
+
+## 15. Build constraints
+
+**Predictive back is app-wide.** At `targetSdk 36` the predictive-back system animations are on
+by default and `onBackPressed()` is no longer called — `OnBackInvokedCallback` is mandatory.
+Every dismissable surface inherits it: dialogs, bottom sheets, the overflow menu, the editor.
+This is a build constraint, not a per-screen decision.
+
+---
+
+## 16. Open items
 
 | Item | Resolve at |
 |---|---|
