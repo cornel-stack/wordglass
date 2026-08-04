@@ -52,8 +52,9 @@ No code path reaches it in slice 01.
 **Out of scope, stated so the sweep does not read it as missing:**
 - No delete action inside ScriptEditor. Delete lives where the list of things is.
 - No search, sort or filter on ScriptList.
-- No rename. Titles derive from the body's first line and are not directly editable
-  beyond editing that line.
+- **No rename by any path except editing the body's first line.** The title is a read-only,
+  field-styled display that mirrors that line (see Addendum, 2026-08-04); it is never a
+  focusable text input.
 - No sharing, export or duplication.
 - The overflow menu has exactly one item.
 
@@ -67,7 +68,6 @@ No code path reaches it in slice 01.
 | `ScriptListOverflowMenu` | **NEW** | M3 `DropdownMenu`. One item in slice 01 |
 | `WritingSurface` | **NEW** | Bespoke full-bleed body surface. Documented in `ScriptEditor.md`, **not** promoted to the component set, and **never** wrapped in a `TextField` |
 | `ReservedAction` | **NEW** | STATE · RESERVED container. Record uses it now; slices 02–20 will reuse it |
-| `TextField` | reuse | ScriptEditor title only, single line |
 | `FloatingActionButton` | reuse | `fab.standard`, `shape.sm` |
 | `ModalBottomSheet` | reuse | ScriptStart |
 | `AlertDialog` | reuse | DeleteConfirm |
@@ -336,10 +336,12 @@ the window minus `space.6`; past that the route list becomes the scrolling regio
 
 ### §6.1 Structure
 
-**Title.** Single-line `TextField`, ellipsis at overflow, **no placeholder**. 56 dp.
-Derived from the body's first line. `outline` boundary — this field is the reason
-`outline` was raised, because in the `new` state it is empty and the boundary is the
-only thing saying it is editable.
+**Title.** A **read-only, field-styled display** — not a `TextField`, not focusable, not
+announced as editable (title question, 2026-08-04; see Addendum). Single line, ellipsis at
+overflow, 56 dp. It **mirrors the body's first line** and updates when that line changes;
+"Untitled" when the body is empty. Any border it keeps is decorative (`outlineVariant`), not a
+sole identifier. *(Supersedes the earlier claim that this field justified raising `outline`;
+the raise now rests on the overflow-menu and dialog edges — see Addendum.)*
 
 **Body.** `WritingSurface` — bespoke, full-bleed, `bodyLarge` on `surface`, no border,
 no label, no fill, `space.4` horizontal padding, leading 1.5×. Never wrapped in a
@@ -440,7 +442,8 @@ The visible exit label names the destination; its description names the directio
 That split is deliberate — sighted users get the place, screen reader users get the
 movement their linearised context needs.
 
-**Focus order.** Title → body → count line → exit → Record. Record keeps its place and
+**Focus order.** Body → count line → exit → Record — the title is a read-only display and is no
+longer a focus stop (Addendum, 2026-08-04). Record keeps its place and
 is announced as unavailable rather than skipped, so its position is learnable before
 it works. Focus and cursor land in the body on entry, and at the restored cursor on
 return.
@@ -579,6 +582,9 @@ Every string in the build. Nothing outside this table may appear.
 | `Generate it` / `Write it` / `Paste or import` | ScriptStart | verbatim F03/F01 · not built in 01 |
 | `Scripts` (exit label) | ScriptEditor | `[NEW — APPROVED 2026-08-04]` |
 | `words` · `sec` · `min` | count line, rows | derived units, not copy |
+| `Just now` | ScriptList row (relative date) | `[NEW — 2026-08-04, needs approval]` |
+| `Nm ago` (e.g. `5m ago`) | ScriptList row (relative date) | `[NEW — 2026-08-04, needs approval]` |
+| `28 Jul 2025` (different-year date) | ScriptList row (relative date) | `[NEW — 2026-08-04, needs approval]` |
 | `Delete this script?` | DeleteConfirm | `[NEW — APPROVED 2026-08-04]` |
 | `"[title]" will be removed from all your devices. This can't be undone.` | DeleteConfirm | `[NEW — APPROVED 2026-08-04]` |
 | `Delete` / `Cancel` | DeleteConfirm | `[NEW — APPROVED 2026-08-04]` |
@@ -664,3 +670,54 @@ Nothing commits without a clean sweep. No exceptions, including "only changed on
 - [ ] The two scrims are visibly identical.
 - [ ] At 200%: nothing overlaps, no numerals truncate, dialog buttons stay on screen.
 - [ ] Deleting a script does not resurrect it after a sync.
+
+---
+
+## Addendum — 2026-08-04 (rulings + corrections)
+
+Settled during `/plan`. These are spec; the next slice inherits them. Where this addendum and an
+earlier section conflict, **the addendum wins.**
+
+### Rulings
+
+1. **Read time.** Under 60 s: `≈ N sec`. At/over 60 s: `≈ M min S sec` — **always** with seconds,
+   **never** rounded to whole minutes. Round to **nearest** second. **Canvas defect logged:**
+   4,012 words @ 140 wpm = **28 min 39 sec**, not the `28 min 40 sec` in the frame (96 words →
+   41 sec confirms round-to-nearest). The frame is wrong; the handoff wins.
+2. **Word count.** Trim, split on Unicode whitespace `\s+`, count non-empty tokens. Hyphenated
+   words = one. Empty / whitespace-only = 0. One shared function for the row and the count line.
+3. **Relative date** (from `updatedAt`): `< 1 min` → **"Just now"** `[NEW]` · `< 1 hr` →
+   **"Nm ago"** `[NEW]` · same calendar day → "Nh ago" · previous day → "Yesterday" · within 7
+   days → weekday abbrev ("Mon", "Fri") · older same year → "28 Jul" · different year →
+   **"28 Jul 2025"** `[NEW]`. The `[NEW]` strings appear in no frame — tagged in §9, must not ship
+   unapproved. *(Ruling text said "four" frame-absent strings; by the frames only these three
+   formats are absent — confirm if a fourth was intended.)*
+4. **Title derivation** runs on the **same 2 s debounce** as count / read-time / autosave — four
+   consumers, one timer (§10.5). Never live per keystroke.
+5. **Local identity.** The solo-org id and local `createdBy` are **generated at first launch and
+   persisted (DataStore)**, never compile-time constants — a hardcoded id would collide unrelated
+   users at slice-13 sync.
+6. **Emptying a body bumps `updatedAt`.** The Untitled row's "Yesterday" means it was emptied
+   yesterday.
+
+### Corrections to earlier sections
+
+- **Title is read-only** (title question): §6.1 corrected (display, not `TextField`); §2's
+  `TextField` reuse entry removed (ScriptEditor uses no `TextField`; the component stays in
+  design-system §11 for future search/org fields); §6.6 focus order is now **body → count line →
+  exit → Record**; §1 out-of-scope strengthened. **Knock-on flagged:** §6.1 had claimed the empty
+  title field justified raising `outline`; with the title read-only that justification is gone,
+  but the `outline` **value is unchanged** — it stands on the overflow-menu / dialog edges
+  (ruling #2's second failure). Only the rationale narrows.
+- **Sort & date (B4).** `ScriptList` sorts by `updatedAt DESC`; the row's relative date renders
+  `updatedAt`. "Newest first" = most recently touched — one field for both.
+
+### Twelve states — corrected (B1)
+
+ScriptList {empty·01, populated, overflowing} · overflow menu · ScriptEditor {new, editing,
+autosaved, interrupted, keyboard-dismissed} · DeleteConfirm {default, **echoed-title-truncated**}
+· **ScriptStart·default (designed, NOT built — asserted absent by the sweep)**. Removed from the
+state list: **"untitled row"** (a variant of *populated*, still built) and **"DeleteConfirm ·
+200% stacked"** (an accessibility behaviour, still handled) — neither is a designed state. The
+**truncated DeleteConfirm** frame gets its own code path and gallery entry: ~40 chars, ellipsis
+**inside** the closing quote, both quote marks always render, the sentence untouched (§7.3).
