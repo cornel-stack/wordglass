@@ -22,7 +22,9 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): WordglassDatabase =
-        Room.databaseBuilder(context, WordglassDatabase::class.java, "wordglass.db").build()
+        Room.databaseBuilder(context, WordglassDatabase::class.java, "wordglass.db")
+            .addMigrations(WordglassDatabase.MIGRATION_1_2)
+            .build()
 
     @Provides
     fun provideScriptDao(database: WordglassDatabase): ScriptDao = database.scriptDao()

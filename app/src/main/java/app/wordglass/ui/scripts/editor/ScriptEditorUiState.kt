@@ -7,4 +7,6 @@ package app.wordglass.ui.scripts.editor
 data class ScriptEditorUiState(
     val wordCount: Int = 0,
     val readTimeSeconds: Int = 0,
+    /** true once the user has taken the title over — the editor stops mirroring the first line. */
+    val titleManuallySet: Boolean = false,
 )

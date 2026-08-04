@@ -52,9 +52,9 @@ No code path reaches it in slice 01.
 **Out of scope, stated so the sweep does not read it as missing:**
 - No delete action inside ScriptEditor. Delete lives where the list of things is.
 - No search, sort or filter on ScriptList.
-- **No rename by any path except editing the body's first line.** The title is a read-only,
-  field-styled display that mirrors that line (see Addendum, 2026-08-04); it is never a
-  focusable text input.
+- **The title is editable** (Addendum, 2026-08-05, reversing the 2026-08-04 read-only ruling).
+  It auto-fills from the body's first line until the user edits it directly, then decouples and
+  is user-owned. It is a focusable `TextField` (§11, title role).
 - No sharing, export or duplication.
 - The overflow menu has exactly one item.
 
@@ -71,6 +71,7 @@ No code path reaches it in slice 01.
 | `FloatingActionButton` | reuse | `fab.standard`, `shape.sm` |
 | `ModalBottomSheet` | reuse | ScriptStart |
 | `AlertDialog` | reuse | DeleteConfirm |
+| `TextField` | reuse | **Restored** 2026-08-05 (the 2026-08-04 removal is reversed with the read-only ruling). The ScriptEditor **title** uses it in its title role (§11); also discrete fields — search, org name. Fill `surfaceContainerLowest`, `outline` stroke → `primary` on focus, `shape.sm`. Not the editor **body** — that stays the bespoke `WritingSurface` |
 | `Button` | reuse | Empty-state filled action — *Generate a script* (slice 06). `primary` container, `onPrimary` label (7.08:1). 48 dp height, `shape.sm`, `space.4` horizontal padding, max width 288 dp, centred |
 | `OutlinedButton` | reuse | Empty-state outlined action — *Write your own*. `outline` border, `onSurface` label (16.24:1). Same geometry as `Button`; the two stack with `space.3` between, so slice 06 **adds** a button rather than resizing one. Also DeleteConfirm's Cancel/Delete (§7.4) |
 | `EmptyState` | reuse | design-system §11. Composes the empty screen — glyph (`description` @ `icon.size.large`, `onSurfaceVariant`, decorative) + body copy (`bodyLarge` on `onSurfaceVariant`, centred) + action(s). One action (`OutlinedButton`) in slice 01; the optional second (`Button`, filled) lands in slice 06. See §4.2 |
@@ -336,12 +337,13 @@ the window minus `space.6`; past that the route list becomes the scrolling regio
 
 ### §6.1 Structure
 
-**Title.** A **read-only, field-styled display** — not a `TextField`, not focusable, not
-announced as editable (title question, 2026-08-04; see Addendum). Single line, ellipsis at
-overflow, 56 dp. It **mirrors the body's first line** and updates when that line changes;
-"Untitled" when the body is empty. Any border it keeps is decorative (`outlineVariant`), not a
-sole identifier. *(Supersedes the earlier claim that this field justified raising `outline`;
-the raise now rests on the overflow-menu and dialog edges — see Addendum.)*
+**Title.** An **editable single-line `TextField`** (§11, title role) — Addendum, 2026-08-05,
+reversing the 2026-08-04 read-only ruling. It **auto-fills from the body's first line** until the
+user edits it here; from then on it is user-owned and the body no longer overwrites it
+(`titleSetByUser`). Single line, 56 dp, overflow scrolls while editing (the list row ellipsizes).
+§11 title styling: fill `surfaceContainerLowest`, a load-bearing `outline` stroke that is the sole
+thing identifying it as editable (no label, no placeholder), `shape.sm`; focus swaps the stroke to
+`primary`.
 
 **Body.** `WritingSurface` — bespoke, full-bleed, `bodyLarge` on `surface`, no border,
 no label, no fill, `space.4` horizontal padding, leading 1.5×. Never wrapped in a
@@ -442,11 +444,12 @@ The visible exit label names the destination; its description names the directio
 That split is deliberate — sighted users get the place, screen reader users get the
 movement their linearised context needs.
 
-**Focus order.** Body → count line → exit → Record — the title is a read-only display and is no
-longer a focus stop (Addendum, 2026-08-04). Record keeps its place and
-is announced as unavailable rather than skipped, so its position is learnable before
-it works. Focus and cursor land in the body on entry, and at the restored cursor on
-return.
+**Focus order.** **Body → title** → count line → exit → Record — the title is an editable field
+again (Addendum, 2026-08-05). Body reads **first** even though the title sits above it: entry focus
+lands in the body and the title only auto-fills, so it is not typed into first. (Implemented with
+`traversalIndex`, overriding the default top-to-bottom order for that one swap.) Record keeps its
+place and is announced as unavailable rather than skipped, so its position is learnable before it
+works. Focus and cursor land in the body on entry (§6.1) and at the restored cursor on return.
 
 **At 200%.** Everything is in flow, so nothing can overlap. Row height is a minimum;
 labels wrap rather than truncate and targets never drop below 72 dp. The count line
@@ -770,3 +773,59 @@ an **API 36 surface** (device or Test Lab), arranged before Phase E. The two ava
 **not** run — a false green is worse than an open gap. Edge-to-edge insets (§10.2), by contrast,
 **are** verifiable here: enforcement landed at API 35, so this device exercises them at shipping
 fidelity.
+
+---
+
+## Addendum — 2026-08-05 (title made editable — reverses the 2026-08-04 read-only ruling)
+
+The **title is editable again**, restoring the pre-ruling design (the original `ScriptEditor`
+design doc already specified it). This reverses the 2026-08-04 "title question" ruling. Where this
+addendum and any earlier section — including the 2026-08-04 addendum's "Title is read-only"
+correction — conflict, **this addendum wins.** Sections corrected inline: §1 out-of-scope, §6.1,
+§6.6.
+
+**Moat.** This strengthens **none** of the three moat mechanisms — it is a usability change, named
+honestly per the standing principle.
+
+### Behaviour — auto-fill until edited
+
+- The title **auto-fills from the body's first line** as the user writes, **until they edit the
+  title field directly**; from then on it is **user-owned** and the body no longer overwrites it.
+- The takeover signal is a title text change **while the title field holds focus** — the mirror
+  only writes the title while the *body* is focused, so focus cleanly separates a user edit from
+  the programmatic mirror. (A re-mirror after a reset can write while the title is focused, so the
+  detector also ignores its own last-written value.)
+- **Emptying a taken-over title resumes automatic derivation.** Clearing a custom name is a request
+  to go back to auto, **not** a request for no name — otherwise a script with a full body could
+  render "Untitled". The reset flips `titleSetByUser` back to false and re-derives from the body's
+  first line. (An **empty body while auto** still renders "Untitled", per the existing rule — the
+  two cases are distinct.)
+- **Entry focus and the cursor still land in the body** (§6.1), never the title.
+- Record creation is unchanged (§6.5): the row is created on the first **body** character. A title
+  set before any body exists is held and applied at creation; a title-only editor with an empty
+  body still creates no row on back-out.
+
+### Data model
+
+- `Script` gains **`titleSetByUser: Boolean`**. false = the title tracks the body's first line and
+  `updateBody` re-derives it; true = the user owns it and `updateBody` leaves it alone. A new
+  `updateTitle(id, title)` sets the title and flips the flag.
+- Carried in the schema (Room **v1 → v2** migration `MIGRATION_1_2`, adds the column defaulting to
+  0; and the parallel Postgres column) so the decoupling **survives slice-13 sync** — another
+  device must not re-derive a user's chosen title from the body. The Room/Postgres column sets stay
+  mirrored (handoff §10, the sync-is-a-mapping invariant).
+
+### Styling & restore
+
+- The title is the §11 `TextField` in its title role (fill `surfaceContainerLowest`, `outline`
+  stroke → `primary` on focus, `shape.sm`, no label/placeholder), 56 dp, single line.
+- **Text token: `titleLarge` — decided.** The earlier "it's a title, not an input" argument is void
+  now the title is editable. The surviving reason is **consistency**: the same derived string is the
+  list row's primary line (`ScriptRow`, `titleLarge`) and DeleteConfirm's echo, and matching weight
+  across all three is what makes the derivation legible *as a rule*. When those two land, they must
+  use the same token.
+- Built as a styled `OutlinedTextField` inline for now; moving it to the shared §11 `TextField`
+  component when that lands is tracked in `design/DEFERRED.md` (two implementations would drift).
+- Process death restores the title text + cursor + selection (its `TextFieldState` `Saver`) and the
+  takeover flag (`SavedStateHandle`), so on restore the mirror stays suppressed for a user-owned
+  title. Verified on the A14. Extends the §8 row-15 *interrupted* restore set to include the title.

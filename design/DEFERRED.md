@@ -66,3 +66,31 @@ not against the slice-06 design.
 - **Sweep · slice 01:** `+` going straight to a blank editor is correct. **A route-chooser
   sheet appearing from `+` in slice 01 is the defect** — two of its three routes have no
   destination yet.
+
+---
+
+## Implementation deferrals — Phase B (not designed-ahead UI, but tracked so they resurface)
+
+These are not deferred *designs*; they are deliberate implementation shortcuts taken during the
+slice-01 build, recorded here so a later slice picks them up rather than trusting memory.
+
+### IBM Plex OFL license — not yet in the shipped APK
+
+- **Now:** the bundled fonts (`res/font/*.ttf`) are covered by `licenses/IBM-Plex-OFL.txt`, tracked
+  **in-repo** for provenance. It is **not** packaged into the APK, because slice 01 has no surface
+  that shows open-source notices.
+- **Activates:** when an OSS-licenses / "About" surface exists (unslotted). Bundle the OFL text
+  (and Material Symbols' Apache-2.0 notice) there or in `assets/`, then delete this entry.
+- **Sweep:** the in-repo license with no in-app notices screen is correct for slice 01. Do **not**
+  flag the missing in-app license text as a defect while no such surface exists.
+
+### `ScriptEditor` title — inline field until the shared §11 `TextField` lands
+
+- **Now:** the editable title (`TitleField`) is a **styled `OutlinedTextField` inline** — the §11
+  `TextField` in its title role (fill `surfaceContainerLowest`, `outline` → `primary` on focus,
+  `shape.sm`). The shared, gallery-backed §11 `TextField` component is not built yet.
+- **Activates:** when the §11 `TextField` component (design-system §11 deliverable) is built. Move
+  `TitleField` onto it so there is one implementation, then delete this entry.
+- **Sweep:** the inline field is the **correct §11 `TextField` usage**, not a fifth new component —
+  do **not** flag it under the §2 "any fifth new component is a defect" rule. Two divergent
+  `TextField` implementations once the shared one exists **would** be the defect.
