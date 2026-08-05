@@ -46,4 +46,15 @@ object ReadTime {
 
     /** Convenience: read-time string straight from text. */
     fun formatFor(text: CharSequence): String = format(readTimeSeconds(wordCount(text)))
+
+    /**
+     * Spoken read-time for content descriptions — "about 47 seconds", "about 2 minutes 14 seconds".
+     * Whole words, no "≈" (which TalkBack reads as "almost equal to"). Singular/plural handled so it
+     * never says "1 seconds". Used by the row's a11y label, "$spoken to read aloud" (§4.7).
+     */
+    fun spoken(seconds: Int): String {
+        fun unit(n: Int, one: String) = "$n $one${if (n == 1) "" else "s"}"
+        return if (seconds < 60) "about ${unit(seconds, "second")}"
+        else "about ${unit(seconds / 60, "minute")} ${unit(seconds % 60, "second")}"
+    }
 }

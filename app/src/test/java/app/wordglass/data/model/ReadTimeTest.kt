@@ -42,4 +42,14 @@ class ReadTimeTest {
         // The logged canvas defect: 4,012 words is 28 min 39 sec, not "40".
         assertEquals("≈ 28 min 39 sec", ReadTime.format(1719))
     }
+
+    @Test
+    fun spoken_singularAndPlural() {
+        assertEquals("about 1 second", ReadTime.spoken(1))
+        assertEquals("about 47 seconds", ReadTime.spoken(47))
+        assertEquals("about 1 minute 1 second", ReadTime.spoken(61))
+        assertEquals("about 2 minutes 14 seconds", ReadTime.spoken(134))
+        // 4,012 words -> 1719 s, the row's a11y read-aloud value.
+        assertEquals("about 28 minutes 39 seconds", ReadTime.spoken(1719))
+    }
 }
