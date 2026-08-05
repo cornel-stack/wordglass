@@ -5,6 +5,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -24,11 +26,15 @@ import app.wordglass.ui.theme.wgType
 fun CountLine(uiState: ScriptEditorUiState, modifier: Modifier = Modifier) {
     val words = "%,d".format(uiState.wordCount)
     val line = "$words words · ${ReadTime.format(uiState.readTimeSeconds)}"
+    val spoken = "${uiState.wordCount} words, ${ReadTime.spoken(uiState.readTimeSeconds)} to read aloud"
     Text(
         text = withMonoNumerals(line),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         style = MaterialTheme.typography.labelMedium,
-        modifier = modifier.padding(horizontal = WgSpacing.s4, vertical = WgSpacing.s1),
+        // §6.6: TalkBack hears the natural-language form — no "≈" symbol or "·" separator.
+        modifier = modifier
+            .padding(horizontal = WgSpacing.s4, vertical = WgSpacing.s1)
+            .semantics { contentDescription = spoken },
     )
 }
 

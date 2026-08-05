@@ -1,23 +1,18 @@
 package app.wordglass.ui.scripts.list
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.unit.dp
 import app.wordglass.data.model.ScriptDisplay
 import app.wordglass.ui.theme.WgShape
-import app.wordglass.ui.theme.WgSpacing
 
 /**
  * DeleteConfirm (handoff §7, design DeleteConfirm.md). The destructive confirmation for a script —
@@ -30,10 +25,14 @@ import app.wordglass.ui.theme.WgSpacing
  * `onSurface` label) left, Delete (`error` border, `error` label) right (§7.4). Focus lands on
  * **Cancel** — one stray confirm should keep the script (§7.5).
  *
+ * Buttons use the native `dismissButton` (Cancel) + `confirmButton` (Delete) slots so M3's
+ * `AlertDialogFlowRow` handles the 200% stacking: Cancel is placed first in the FlowRow → it
+ * appears left at normal scale, above Delete when the row wraps at large text scale (§7.5).
+ *
  * FLAGGED (§10.4): the scrim here is Material3's default (~0.32), **not** the `scrim.modal` 0.60
  * that must match ScriptStart's across both system bars. ScriptStart is slice 06, so there is
  * nothing to match against yet — the exact-0.60 full-window scrim is deferred until then. TalkBack
- * reads the untruncated title (§7.5).
+ * reads the untruncated title without quote marks (§7.5).
  */
 @Composable
 fun DeleteConfirm(
@@ -54,41 +53,38 @@ fun DeleteConfirm(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.semantics {
-                    // TalkBack hears the full, untruncated title (§7.5).
+                    // §7.5: TalkBack reads the full untruncated title WITHOUT the quote marks.
                     contentDescription =
-                        "\"$display\" will be removed from all your devices. This can't be undone."
+                        "$display will be removed from all your devices. This can't be undone."
                 },
             )
         },
-        // Cancel then Delete, Cancel first so initial focus lands on the safe path (§7.5).
-        confirmButton = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(WgSpacing.s3, Alignment.End),
-            ) {
-                OutlinedButton(
-                    onClick = onDismiss,
-                    shape = WgShape.sm,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
-                    modifier = Modifier.semantics { contentDescription = "Cancel. Keep this script." },
-                ) { Text("Cancel") }
-                OutlinedButton(
-                    onClick = onConfirm,
-                    shape = WgShape.sm,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error,
-                    ),
-                    modifier = Modifier.semantics {
-                        contentDescription = "Delete this script permanently."
-                    },
-                ) { Text("Delete") }
-            }
+        // §7.4: Cancel left/above, Delete right/below. §7.5: focus lands on Cancel (dismissButton
+        // is first in M3's AlertDialogFlowRow, so it receives initial accessibility focus).
+        dismissButton = {
+            OutlinedButton(
+                onClick = onDismiss,
+                shape = WgShape.sm,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ),
+                modifier = Modifier.semantics { contentDescription = "Cancel. Keep this script." },
+            ) { Text("Cancel") }
         },
-        dismissButton = null,
+        confirmButton = {
+            OutlinedButton(
+                onClick = onConfirm,
+                shape = WgShape.sm,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error,
+                ),
+                modifier = Modifier.semantics {
+                    contentDescription = "Delete this script permanently."
+                },
+            ) { Text("Delete") }
+        },
     )
 }
 
