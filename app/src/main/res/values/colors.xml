@@ -7,4 +7,7 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- Window / cold-start splash background only. UI colours live in ui/theme/Color.kt
+         (design-system §4, `surface`). Kept in sync with that token by hand. -->
+    <color name="surface">#FF0B0C0E</color>
 </resources>

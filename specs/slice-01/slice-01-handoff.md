@@ -52,8 +52,9 @@ No code path reaches it in slice 01.
 **Out of scope, stated so the sweep does not read it as missing:**
 - No delete action inside ScriptEditor. Delete lives where the list of things is.
 - No search, sort or filter on ScriptList.
-- No rename. Titles derive from the body's first line and are not directly editable
-  beyond editing that line.
+- **The title is editable** (Addendum, 2026-08-05, reversing the 2026-08-04 read-only ruling).
+  It auto-fills from the body's first line until the user edits it directly, then decouples and
+  is user-owned. It is a focusable `TextField` (§11, title role).
 - No sharing, export or duplication.
 - The overflow menu has exactly one item.
 
@@ -67,10 +68,10 @@ No code path reaches it in slice 01.
 | `ScriptListOverflowMenu` | **NEW** | M3 `DropdownMenu`. One item in slice 01 |
 | `WritingSurface` | **NEW** | Bespoke full-bleed body surface. Documented in `ScriptEditor.md`, **not** promoted to the component set, and **never** wrapped in a `TextField` |
 | `ReservedAction` | **NEW** | STATE · RESERVED container. Record uses it now; slices 02–20 will reuse it |
-| `TextField` | reuse | ScriptEditor title only, single line |
 | `FloatingActionButton` | reuse | `fab.standard`, `shape.sm` |
 | `ModalBottomSheet` | reuse | ScriptStart |
 | `AlertDialog` | reuse | DeleteConfirm |
+| `TextField` | reuse | **Restored** 2026-08-05 (the 2026-08-04 removal is reversed with the read-only ruling). The ScriptEditor **title** uses it in its title role (§11); also discrete fields — search, org name. Fill `surfaceContainerLowest`, `outline` stroke → `primary` on focus, `shape.sm`. Not the editor **body** — that stays the bespoke `WritingSurface` |
 | `Button` | reuse | Empty-state filled action — *Generate a script* (slice 06). `primary` container, `onPrimary` label (7.08:1). 48 dp height, `shape.sm`, `space.4` horizontal padding, max width 288 dp, centred |
 | `OutlinedButton` | reuse | Empty-state outlined action — *Write your own*. `outline` border, `onSurface` label (16.24:1). Same geometry as `Button`; the two stack with `space.3` between, so slice 06 **adds** a button rather than resizing one. Also DeleteConfirm's Cancel/Delete (§7.4) |
 | `EmptyState` | reuse | design-system §11. Composes the empty screen — glyph (`description` @ `icon.size.large`, `onSurfaceVariant`, decorative) + body copy (`bodyLarge` on `onSurfaceVariant`, centred) + action(s). One action (`OutlinedButton`) in slice 01; the optional second (`Button`, filled) lands in slice 06. See §4.2 |
@@ -183,7 +184,14 @@ Horizontal padding `space.4`. Trailing `···` occupies a 48 dp square target.
 Numerals in mono tabular so figures do not jitter between rows. Read time computed at
 **140 wpm**.
 
-**Relative date rendering:** `2h ago` · `Yesterday` · `Mon` · `Fri` · `28 Jul` · `21 Jul`.
+**Read-time format:** under 60 s → `≈ N sec`; at or over 60 s → `≈ M min S sec` — always
+with seconds, never rounded to whole minutes. Round to nearest second. (4,012 words @ 140 wpm =
+`28 min 39 sec`, not `28 min 40 sec` — frame was wrong, handoff wins.)
+
+**Relative date thresholds** (from `updatedAt`): `< 1 min` → `"Just now"` `[NEW]` · `< 1 hr` →
+`"Nm ago"` `[NEW]` · same calendar day → `"Nh ago"` · previous day → `"Yesterday"` · within 7
+days → weekday abbrev (`"Mon"`, `"Fri"`) · older same year → `"28 Jul"` · different year →
+`"28 Jul 2025"` `[NEW]`. The three `[NEW]` strings appear in §9 and must not ship unapproved.
 
 **The Untitled row.** A script whose body has been emptied to zero characters keeps
 existing and has nothing to derive a title from. Its title position renders
@@ -211,7 +219,7 @@ exists to prove the clamp, not to introduce anything.
 | Container | `surfaceContainerHigh`, `shape.sm`, 1 dp `outline` |
 | Anchor | trailing edge of the `···`; opens downward, upward when the anchor is within 88 dp of the window bottom |
 | Min width | 112 dp |
-| Edge margin | `space.4` minimum from the window's trailing edge |
+| Edge margin | trailing edge aligned to the `···`, `space.4` from the window's trailing edge |
 | Item height | 48 dp, full-width target |
 | Item padding | `space.3` horizontal |
 | Item label | `bodyLarge` on `onSurface` — **not** `error` |
@@ -336,10 +344,13 @@ the window minus `space.6`; past that the route list becomes the scrolling regio
 
 ### §6.1 Structure
 
-**Title.** Single-line `TextField`, ellipsis at overflow, **no placeholder**. 56 dp.
-Derived from the body's first line. `outline` boundary — this field is the reason
-`outline` was raised, because in the `new` state it is empty and the boundary is the
-only thing saying it is editable.
+**Title.** An **editable single-line `TextField`** (§11, title role) — Addendum, 2026-08-05,
+reversing the 2026-08-04 read-only ruling. It **auto-fills from the body's first line** until the
+user edits it here; from then on it is user-owned and the body no longer overwrites it
+(`titleSetByUser`). Single line, 56 dp, overflow scrolls while editing (the list row ellipsizes).
+§11 title styling: fill `surfaceContainerLowest`, a load-bearing `outline` stroke that is the sole
+thing identifying it as editable (no label, no placeholder), `shape.sm`; focus swaps the stroke to
+`primary`.
 
 **Body.** `WritingSurface` — bespoke, full-bleed, `bodyLarge` on `surface`, no border,
 no label, no fill, `space.4` horizontal padding, leading 1.5×. Never wrapped in a
@@ -358,6 +369,13 @@ Format: `[count] words · ≈ [read time]`. Empty reads `0 words · ≈ 0 sec`.
 
 Figures in `numericMedium`, mono tabular, so they do not jitter as they settle.
 "words" and the separator in `labelMedium`. Computed at **140 wpm**.
+
+**Word count rule:** trim, split on Unicode whitespace `\s+`, count non-empty tokens. Hyphenated
+words = one. Empty / whitespace-only body = 0. One shared function for the row and the count
+line — two implementations will disagree eventually.
+
+**Read-time format:** under 60 s → `≈ N sec`; at or over 60 s → `≈ M min S sec` — always with
+seconds, never rounded to whole minutes. Round to nearest second.
 
 **One two-second debounce drives the count, the read time and the autosave together**,
 so the number settling is the same moment the write happened. Never per keystroke.
@@ -417,7 +435,9 @@ toast.
 **An editor emptied to zero characters keeps its script.** Deleting content is not
 deleting a script; the user has an explicit Delete for that intent, and silently
 destroying a saved record because the last character went is data loss without
-confirmation. Its row renders per §4.4.
+confirmation. Its row renders per §4.4. **Emptying a body bumps `updatedAt`** — the
+Untitled row's relative date reflects when the body was last changed, not when the
+script was created.
 
 ### §6.6 Accessibility — ScriptEditor
 
@@ -440,10 +460,12 @@ The visible exit label names the destination; its description names the directio
 That split is deliberate — sighted users get the place, screen reader users get the
 movement their linearised context needs.
 
-**Focus order.** Title → body → count line → exit → Record. Record keeps its place and
-is announced as unavailable rather than skipped, so its position is learnable before
-it works. Focus and cursor land in the body on entry, and at the restored cursor on
-return.
+**Focus order.** **Body → title** → count line → exit → Record — the title is an editable field
+again (Addendum, 2026-08-05). Body reads **first** even though the title sits above it: entry focus
+lands in the body and the title only auto-fills, so it is not typed into first. (Implemented with
+`traversalIndex`, overriding the default top-to-bottom order for that one swap.) Record keeps its
+place and is announced as unavailable rather than skipped, so its position is learnable before it
+works. Focus and cursor land in the body on entry (§6.1) and at the restored cursor on return.
 
 **At 200%.** Everything is in flow, so nothing can overlap. Row height is a minimum;
 labels wrap rather than truncate and targets never drop below 72 dp. The count line
@@ -571,24 +593,28 @@ Every string in the build. Nothing outside this table may appear.
 | --- | --- | --- |
 | `Scripts` (screen title) | ScriptList | `[NEW — APPROVED 2026-08-04]` |
 | `No scripts yet. Write your first one.` | ScriptList empty · 01 | `[NEW — APPROVED 2026-08-04]` |
-| `Write your own` | ScriptList empty | verbatim F03 — **confirm** |
-| `Generate a script` | ScriptList empty · 06 | verbatim F03 — **confirm** · not built in 01 |
-| `No scripts yet. Generate one in about thirty seconds, or write your own.` | ScriptList empty · 06 | verbatim F03 — **confirm** · not built in 01 |
+| `Write your own` | ScriptList empty | verbatim F03 ✓ |
+| `Generate a script` | ScriptList empty · 06 | verbatim F03 ✓ · not built in 01 |
+| `No scripts yet. Generate one in about thirty seconds, or write your own.` | ScriptList empty · 06 | verbatim F03 ✓ · not built in 01 |
 | `Untitled` | ScriptList row | `[NEW — APPROVED 2026-08-04]` |
 | `Delete` (menu item) | Overflow menu | `[NEW — APPROVED 2026-08-04]` |
-| `Generate it` / `Write it` / `Paste or import` | ScriptStart | verbatim F03/F01 · not built in 01 |
+| `Generate it` / `Write it` / `Paste or import` | ScriptStart | verbatim F03/F01 ✓ · not built in 01 |
 | `Scripts` (exit label) | ScriptEditor | `[NEW — APPROVED 2026-08-04]` |
+| `Record` (visible label on the RESERVED button) | ScriptEditor | verbatim §6.3 ✓ |
 | `words` · `sec` · `min` | count line, rows | derived units, not copy |
+| `Just now` | ScriptList row (relative date, < 1 min) | `[NEW — APPROVED 2026-08-05]` |
+| `Nm ago` (e.g. `5m ago`) | ScriptList row (relative date, < 1 hr) | `[NEW — APPROVED 2026-08-05]` |
+| `Nh ago` (e.g. `2h ago`) | ScriptList row (relative date, same day) | verbatim F03 ✓ |
+| `Yesterday` | ScriptList row (relative date, previous day) | verbatim F03 ✓ |
+| Weekday abbreviation (e.g. `Mon`, `Fri`) | ScriptList row (relative date, 2–6 days) | locale-derived via `TextStyle.SHORT`, §4.4 ✓ |
+| `d MMM` (e.g. `28 Jul`) | ScriptList row (relative date, older same year) | locale-derived format, §4.4 ✓ |
+| `28 Jul 2025` (different-year date format) | ScriptList row (relative date) | `[NEW — APPROVED 2026-08-05]` |
 | `Delete this script?` | DeleteConfirm | `[NEW — APPROVED 2026-08-04]` |
 | `"[title]" will be removed from all your devices. This can't be undone.` | DeleteConfirm | `[NEW — APPROVED 2026-08-04]` |
 | `Delete` / `Cancel` | DeleteConfirm | `[NEW — APPROVED 2026-08-04]` |
 | `Start a script` | ScriptStart | `[NEW — APPROVED 2026-08-04]` · **accessible name only, never rendered** |
 
 Plus every content description in §4.7, §5.3, §6.6 and §7.5 — all approved, all verbatim.
-
-**Three strings need confirming against F03 before build.** If they are not verbatim,
-tag them `[NEW]` and approve them as-is; they read correctly either way, but they must
-not reach the build untagged if they were invented.
 
 ---
 
@@ -648,19 +674,128 @@ Nothing commits without a clean sweep. No exceptions, including "only changed on
 
 ### Slice-01-specific checks
 
-- [ ] `onSurfaceDisabled` appears **nowhere**. Record uses STATE · RESERVED.
-- [ ] Record has **no outline** and its dot is `onSurfaceVariant`, not the record red.
-- [ ] `shape.full` appears nowhere.
-- [ ] ScriptList empty shows **one** button and the slice-01 string.
-- [ ] `+` opens a blank ScriptEditor. It does **not** open ScriptStart.
-- [ ] ScriptStart has no reachable code path.
-- [ ] Backing out of a never-typed editor adds **no row**.
-- [ ] Scrolled fully to the end, the last row clears the FAB by 16 dp.
-- [ ] The `···` target does not overlap the row target.
-- [ ] Every `···` description names its script.
-- [ ] Row titles read untruncated in TalkBack.
-- [ ] DeleteConfirm opens with focus on **Cancel**.
-- [ ] Focus returns to the originating `···` after every dismiss path.
-- [ ] The two scrims are visibly identical.
-- [ ] At 200%: nothing overlaps, no numerals truncate, dialog buttons stay on screen.
-- [ ] Deleting a script does not resurrect it after a sync.
+**Key:** `[x]` = verified · `[UNVERIFIED]` = not run on device · `[ ]` = open
+
+- [x] `onSurfaceDisabled` appears **nowhere**. Record uses STATE · RESERVED. *(code)*
+- [x] Record has **no outline** and its dot is `onSurfaceVariant`, not the record red. *(device — Phase E visual sweep)*
+- [x] `shape.full` appears nowhere. *(code)*
+- [x] ScriptList empty shows **one** button and the slice-01 string. *(code)*
+- [x] `+` opens a blank ScriptEditor. It does **not** open ScriptStart. *(code)*
+- [x] ScriptStart has no reachable code path. *(code)*
+- [x] Backing out of a never-typed editor adds **no row**. *(code)*
+- [x] Scrolled fully to the end, the last row clears the FAB by 16 dp. *(device — Phase E visual sweep)*
+- [x] The `···` target does not overlap the row target. *(code — sibling nodes)*
+- [x] Every `···` description names its script. *(code — Phase E fix A)*
+- [x] Row titles read untruncated in TalkBack. *(code — description is set to the full, untruncated display string)*
+- [x] Rows divided by a **1 dp `outlineVariant` line**, not a container. *(device — Phase E visual sweep)*
+- [x] Overflow menu trailing edge aligns to the `···`'s trailing edge, `space.4` from window edge. *(device — Phase E visual sweep)*
+- [x] The two scrims are visibly identical. *(N/A — ScriptStart is not built; deferred until slice 06)*
+- [x] Deleting a script does not resurrect it after a sync. *(local delete only in slice 01; tombstone sync is slice 13)*
+- [x] **No "discard changes?" dialog anywhere.** Back from a new, mid-edit, or resumed editor goes directly to ScriptList — no confirmation, no toast, no modal. *(code — `BackHandler` calls `onNavigateBack()` directly)*
+- [x] **Component gallery renders exactly the built components.** *(code — debug src/debug/ only; release verified zero gallery classes)*
+- [UNVERIFIED] **DeleteConfirm opens with focus on Cancel.** *TalkBack not run on device. Fix F (split dismissButton/confirmButton) is the mechanism — unobserved. See DEFERRED.md.*
+- [UNVERIFIED] **Focus returns to the originating `···` after menu dismiss and dialog cancel (§8 rows 8, 10).** *TalkBack not run on device. See DEFERRED.md.*
+- [UNVERIFIED] **Focus after delete confirmed lands on the successor row, or on the empty-state action when the list becomes empty (§8 row 9).** *TalkBack not run on device. See DEFERRED.md.*
+- [UNVERIFIED] **ReservedAction (Record) is announced as unavailable and is not skipped in the focus order.** *TalkBack not run on device. See DEFERRED.md.*
+- [UNVERIFIED] **At 200%: dialog buttons stack Cancel above Delete.** *Fix F is the mechanism — unobserved. See DEFERRED.md.*
+- [UNVERIFIED] **At 200%: metadata line wraps rather than truncating; numerals are not what truncates.** *Fix C is the mechanism — unobserved. See DEFERRED.md.*
+
+---
+
+## Changelog
+
+The rulings and corrections below were originally addenda. Their substance has been folded into
+the relevant sections above; what follows records what changed, when, and — for reversals — what
+was undone and why.
+
+### 2026-08-04 — Rulings and corrections
+
+**Rulings** (folded into §4.4, §6.2, §6.5, §10.5):
+
+1. Read-time format: §4.4 and §6.2.
+2. Word-count rule: §6.2.
+3. Relative-date thresholds: §4.4.
+4. Title derivation on the same 2 s debounce as the other three consumers: §10.5.
+5. Local identity (solo-org id + `createdBy`) generated at first launch, persisted in DataStore —
+   never compile-time constants. A hardcoded id would collide across users at slice-13 sync.
+6. Emptying a body bumps `updatedAt`: §6.5.
+
+**Corrections** (resolved):
+
+- Sort order: `ScriptList` sorts by `updatedAt DESC`; the row's relative date renders `updatedAt`.
+  "Newest first" = most recently touched — one field for both.
+- Twelve states corrected: added DeleteConfirm · echoed-title-truncated as a state; ScriptStart
+  marked designed-not-built; "untitled row" and "DeleteConfirm 200% stacked" reclassified as a
+  variant of *populated* and an accessibility behaviour respectively — neither is a designed state.
+- **Title made read-only — reversed 2026-08-05.** See below.
+
+### 2026-08-05 — Phase A verification (Galaxy A14, Android 15 / API 35)
+
+All five Phase A exit criteria passed. Three learnings are now spec:
+
+1. **Keyboard settle on restore** is cosmetic and accepted. The IME reports a stale selection
+   (`0–0`) for ~1–2 s after process-death restore; no data is lost. Do not add a recovered-state
+   indicator — §6.4 prohibits it.
+2. **`lastPersistedBody` guard is load-bearing.** `.drop(1)` skips the seed emission; the guard
+   skips redundant writes (including ones that slip past the debounce on a restore). Both are
+   required and must be preserved by any future refactor of §10.5. Contract: **an unchanged editor
+   session performs zero writes.**
+3. **"Untitled" is view-layer only.** An emptied body persists `title = ""`. The string "Untitled"
+   is substituted at render, never written. A single shared function must handle this substitution
+   for both `ScriptRow` and the editor title display — two implementations will disagree.
+4. **Predictive back gap.** Cannot be verified on this device (API 35, three-button nav). Needs an
+   API 36 surface before Phase E. A false green from a smoke test is worse than an open gap.
+
+### 2026-08-05 — Title restored as editable (reverses 2026-08-04 read-only ruling)
+
+The title is editable again, restoring the pre-ruling design. The 2026-08-04 ruling that made it
+read-only is reversed. Sections updated inline: §1, §2 (`TextField` restored), §6.1, §6.6.
+Data model: `Script` gains `titleSetByUser: Boolean`; Room v1→v2 migration (`MIGRATION_1_2`) adds
+the column; matching Postgres column added. The Room/Postgres column sets stay mirrored so the
+decoupling survives slice-13 sync.
+
+### 2026-08-05 — §9 completed and all strings approved
+
+Three relative-date strings that were `[NEW — needs approval]` since Phase C are now approved
+(`Just now`, `Nm ago`, `28 Jul 2025`). Four strings that were in the build but not inventoried
+in §9 were added: `Record` (visible label, §6.3), `Nh ago`, `Yesterday`, weekday abbreviations,
+and `d MMM` format (all verbatim F03). The "three strings need confirming" note was removed —
+all copy is now confirmed or approved. The `Write your own` and `Generate a script` tags changed
+from "confirm" to "✓" since they were confirmed verbatim F03 in the Phase C review.
+
+### 2026-08-05 — Slice 01 closed
+
+**Closed:** 2026-08-05. All code committed and merged to main from `slice-01-phase-a`.
+
+**§11 result:** eighteen checks pass (code or device), six `[UNVERIFIED]`.
+
+**Two open items carried forward — neither blocks the merge:**
+
+1. **TalkBack and 200% checks not run.** Six §11 items — DeleteConfirm focus on Cancel, focus
+   returns (§8 rows 8/9/10), ReservedAction announcement, dialog stacking at 200%, metadata
+   wrapping at 200% — were not verified on device. Phase E fixes C and F address the mechanisms
+   but the fixes are unobserved. Obligation recorded in `design/DEFERRED.md`: must be verified
+   before slice 02's fidelity sweep closes.
+
+2. **Predictive back blocked on API 36.** Cannot be verified on the A14 (API 35, three-button
+   nav). Needs an API 36 surface. Recorded in `design/DEFERRED.md` since Phase A.
+
+### 2026-08-05 — Phase E rulings
+
+**Gallery scope (§11).** `docs/build-plan.md` lists ten components for slice 01; five are built.
+Ruling: the gallery renders only components that exist, in every state. The four outstanding
+(Slider → slice 02, Chip → slice 06, Toast → slice 03, Progress → slice 04) are tracked in
+`design/DEFERRED.md`. Updated §11 to make the correct gallery scope explicit and to assert that
+placeholder cards for missing components are a defect.
+
+**No-discard-dialog assertion (§11).** Added the explicit no-"discard changes?" check to the
+slice-01-specific list. F03 removes this dialog entirely (autosave means back is always safe),
+but it is the conventional pattern that a developer reading only UI-pattern literature would add.
+The check exists because it is easy to ship silently without a sweep that names it.
+
+### 2026-08-05 — Overflow-menu anchoring corrected (D2)
+
+§4.6 edge-margin wording changed from "space.4 minimum" to "trailing edge aligned to the `···`,
+space.4 from the window's trailing edge." The original minimum phrasing allowed M3's DropdownMenu
+to float free of the control that opened it. The implementation overrides `offset` to align the
+menu's trailing edge to the `···`'s trailing edge.

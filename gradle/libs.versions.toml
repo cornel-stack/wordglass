@@ -18,6 +18,11 @@ hilt = "2.60.1"
 hiltNavigationCompose = "1.2.0"
 navigationCompose = "2.9.5"
 room = "2.7.2"
+# Explicit coroutines (S1): the editor debounce pipeline uses Flow.debounce/snapshotFlow;
+# previously only transitive via room-ktx/lifecycle. DataStore (S8): persists the
+# first-launch-generated solo-org id + local createdBy (B3).
+coroutines = "1.10.2"
+datastore = "1.1.7"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,6 +48,9 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", v
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

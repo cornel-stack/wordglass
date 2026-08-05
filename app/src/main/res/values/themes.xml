@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Wordglass" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Dark-first (design-system §2): a Light system theme flashed white on cold start. Dark base,
+         `surface` window background so the cold-start splash and the window behind Compose are the
+         product's near-black, never white. Compose draws the UI; enableEdgeToEdge() owns the bars,
+         so both bar colours are transparent. -->
+    <style name="Theme.Wordglass" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
 </resources>
