@@ -21,7 +21,14 @@ import javax.inject.Inject
 /**
  * The editor's stateful core. ONE 2-second debounce with four consumers — word count, read time,
  * title derivation and autosave — so the count settles at the same instant the write happens
- * (§6.2, §10.5, addendum ruling 4).
+ * (§6.2, §10.5).
+ *
+ * **Opening an existing script (§8 rows 3, 1).** When a `scriptId` nav arg is present and no
+ * `recordId` is in [SavedStateHandle] yet (first open, not a process-death restore), the VM loads
+ * the script from the repository, stamps [lastPersistedBody], and exposes the content via
+ * [uiState]'s `openingBody` / `openingTitle`. The composable sets its `TextFieldState`s from those
+ * values. On process-death restore, [recordId] is already in `SavedStateHandle`, `openingBody`
+ * stays null, and the composable's `TextFieldState` `Saver` handles text restoration.
  *
  * **Title.** The title auto-fills from the body's first line until the user edits it directly;
  * from that point it is user-owned and the body stops overwriting it (`titleSetByUser`). The
@@ -64,7 +71,52 @@ class ScriptEditorViewModel @Inject constructor(
     val uiState: StateFlow<ScriptEditorUiState> = _uiState.asStateFlow()
 
     init {
-        _uiState.value = _uiState.value.copy(titleManuallySet = titleManuallySet)
+        val scriptId = savedStateHandle.get<String?>(ARG_SCRIPT_ID)
+        val isFirstOpen = scriptId != null && recordId == null
+
+        when {
+            isFirstOpen -> {
+                // First open of an existing script — load it async, tell the composable to wait.
+                recordId = scriptId
+                _uiState.value = ScriptEditorUiState(
+                    isLoadingExisting = true,
+                    titleManuallySet = titleManuallySet,
+                )
+                viewModelScope.launch {
+                    val script = repository.getById(scriptId!!)
+                    if (script == null) {
+                        // Script not found (deleted on another device) — fall back to blank editor.
+                        _uiState.value = _uiState.value.copy(
+                            isLoadingExisting = false,
+                            openingBody = "",
+                        )
+                        return@launch
+                    }
+                    titleManuallySet = script.titleSetByUser
+                    lastPersistedBody = script.body
+                    recompute(script.body)
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingExisting = false,
+                        titleManuallySet = script.titleSetByUser,
+                        openingBody = script.body,
+                        openingTitle = script.title,
+                    )
+                }
+            }
+            scriptId == null && recordId == null -> {
+                // New script — signal immediately so the composable calls onInitialText right away.
+                _uiState.value = ScriptEditorUiState(
+                    titleManuallySet = titleManuallySet,
+                    openingBody = "",
+                )
+            }
+            else -> {
+                // Process-death restore (recordId is already set). TextFieldState Saver restores
+                // the text; the composable calls onInitialText with the restored body.
+                _uiState.value = ScriptEditorUiState(titleManuallySet = titleManuallySet)
+            }
+        }
+
         viewModelScope.launch {
             textFlow
                 .drop(1) // skip the seed value; onInitialText already handled the opening text
@@ -75,8 +127,8 @@ class ScriptEditorViewModel @Inject constructor(
             titleFlow
                 .drop(1) // skip the seed; a manual title only ever flows from a user edit
                 .debounce(DEBOUNCE_MS)
-                // Only persist while the title is user-owned. A stale value left in the flow after a
-                // reset-to-auto must not re-persist and re-take-over the title.
+                // Only persist while the title is user-owned. A stale value left in the flow after
+                // a reset-to-auto must not re-persist and re-take-over the title.
                 .collect { if (titleManuallySet) persistTitle(it) }
         }
     }
@@ -182,6 +234,7 @@ class ScriptEditorViewModel @Inject constructor(
     }
 
     private companion object {
+        const val ARG_SCRIPT_ID = "scriptId"
         const val KEY_RECORD_ID = "recordId"
         const val KEY_TITLE_MANUAL = "titleManuallySet"
         const val DEBOUNCE_MS = 2000L

@@ -33,6 +33,14 @@ import kotlinx.coroutines.flow.drop
  * (their `Saver`s restore text + cursor + selection across process death); the ViewModel owns the
  * debounce pipelines, the persisted-record id and the title-takeover flag.
  *
+ * **Opening an existing script.** When the nav arg `scriptId` is present and this is the first
+ * open (not a process-death restore), the VM loads the script and exposes it via `uiState.openingBody`
+ * / `uiState.openingTitle`. [LaunchedEffect(uiState.openingBody)] sets the text states from those
+ * values and calls `onInitialText`. For new scripts `openingBody` is set to `""` synchronously in
+ * VM init, so the same LaunchedEffect fires immediately. For process-death restores `openingBody`
+ * is null and `isLoadingExisting` is false — [LaunchedEffect(Unit)] handles those by calling
+ * `onInitialText` with the Saver-restored body.
+ *
  * **Title.** Editable (§11 `TextField`, title role). It auto-fills from the body's first line
  * until the user edits it here, then decouples ([ScriptEditorViewModel.onTitleEdited]). The mirror
  * runs only while the title is still auto; a title text change *while the title field holds focus*
@@ -55,9 +63,26 @@ fun ScriptEditorScreen(
     // focus, which the focus gate alone can't distinguish.
     var lastMirrored by remember { mutableStateOf<String?>(null) }
 
-    // Immediate count + restore seed, once. Then feed subsequent changes to the debounce
-    // (drop the initial snapshot emission — onInitialText already handled the opening text).
-    LaunchedEffect(Unit) { viewModel.onInitialText(textState.text.toString()) }
+    // Primary opening-text path: fires for new scripts (openingBody="") and first-open existing
+    // scripts (openingBody=script.body). null openingBody = process-death restore handled below.
+    LaunchedEffect(uiState.openingBody) {
+        val body = uiState.openingBody ?: return@LaunchedEffect
+        if (body.isNotEmpty()) textState.setTextAndPlaceCursorAtEnd(body)
+        viewModel.onInitialText(body)
+    }
+    // Process-death restore path: openingBody stays null and isLoadingExisting is false.
+    // TextFieldState Saver has already restored the body text.
+    LaunchedEffect(Unit) {
+        if (uiState.openingBody == null && !uiState.isLoadingExisting) {
+            viewModel.onInitialText(textState.text.toString())
+        }
+    }
+    // Opening title for existing scripts with a user-owned title (mirror won't fire for those).
+    LaunchedEffect(uiState.openingTitle) {
+        val title = uiState.openingTitle ?: return@LaunchedEffect
+        if (title.isNotEmpty()) titleState.setTextAndPlaceCursorAtEnd(title)
+    }
+
     LaunchedEffect(textState) {
         snapshotFlow { textState.text.toString() }
             .drop(1)

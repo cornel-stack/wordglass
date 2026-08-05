@@ -13,14 +13,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import app.wordglass.data.model.ReadTime
 import app.wordglass.data.model.RelativeDate
@@ -47,6 +51,9 @@ import app.wordglass.ui.theme.wgType
  * A11y: the title + metadata read as **one node** carrying the full untruncated title (the two-line
  * clamp is sighted-only); the `···` is a separate node naming its script (§4.7). The `action`
  * config (ScriptStart, slice 06) is not built here — see design/DEFERRED.md.
+ *
+ * Focus return (§8 rows 8, 9, 10): [shouldFocusOverflow] causes the `···` to request focus once,
+ * then [onFocusHandled] clears the flag in the parent so it does not repeat on recomposition.
  */
 @Composable
 fun ScriptRow(
@@ -59,11 +66,21 @@ fun ScriptRow(
     menuExpanded: Boolean,
     onMenuDismiss: () -> Unit,
     onDelete: () -> Unit,
+    shouldFocusOverflow: Boolean = false,
+    onFocusHandled: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val display = ScriptDisplay.title(title)
     val relativeDate = RelativeDate.format(updatedAtMillis, java.time.Instant.ofEpochMilli(nowMillis))
     val rowDescription = "$display, $relativeDate, ${ReadTime.spoken(readTimeSeconds)} to read aloud."
+    val overflowFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(shouldFocusOverflow) {
+        if (shouldFocusOverflow) {
+            overflowFocusRequester.requestFocus()
+            onFocusHandled()
+        }
+    }
 
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -90,8 +107,7 @@ fun ScriptRow(
                 text = metadata(relativeDate, readTimeSeconds),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                // §4.7 at 200%: the metadata line wraps rather than truncating; no maxLines cap.
                 modifier = Modifier
                     .padding(top = WgSpacing.s1)
                     .clearAndSetSemantics { },
@@ -102,8 +118,9 @@ fun ScriptRow(
         Box(
             modifier = Modifier
                 .size(OVERFLOW_TARGET)
+                .focusRequester(overflowFocusRequester)
                 .clickable(onClick = onOverflow)
-                .semantics { contentDescription = "More options for $display" },
+                .semantics { contentDescription = "More options for $display." },
             contentAlignment = Alignment.Center,
         ) {
             WgIcon(
